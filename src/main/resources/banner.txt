@@ -1,0 +1,16 @@
+${AnsiColor.BRIGHT_YELLOW}${AnsiStyle.BOLD}
+$$\   $$\ $$\                     $$$$$$$\
+$$ | $$  |\__|                    $$  __$$\
+$$ |$$  / $$\ $$$$$$$\   $$$$$$\  $$ |  $$ | $$$$$$\   $$$$$$\
+$$$$$  /  $$ |$$  __$$\ $$  __$$\ $$ |  $$ |$$  __$$\ $$  __$$\
+$$  $$<   $$ |$$ |  $$ |$$ /  $$ |$$ |  $$ |$$$$$$$$ |$$$$$$$$ |
+$$ |\$$\  $$ |$$ |  $$ |$$ |  $$ |$$ |  $$ |$$   ____|$$   ____|
+$$ | \$$\ $$ |$$ |  $$ |\$$$$$$$ |$$$$$$$  |\$$$$$$$\ \$$$$$$$\
+\__|  \__|\__|\__|  \__| \____$$ |\_______/  \_______| \_______|
+                        $$\   $$ |
+                        \$$$$$$  |
+                         \______/
+${AnsiStyle.NORMAL}JAVA Version: ${AnsiStyle.BOLD}${AnsiColor.CYAN}${java.version}
+${AnsiStyle.NORMAL}Spring Boot Version: ${AnsiStyle.BOLD}${AnsiColor.CYAN}${spring-boot.version}
+${AnsiStyle.NORMAL}Spring Boot Environment: ${AnsiStyle.BOLD}${AnsiColor.CYAN}${spring.profiles.active}
+${AnsiStyle.NORMAL}

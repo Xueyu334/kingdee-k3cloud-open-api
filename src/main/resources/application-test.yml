@@ -1,0 +1,18 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+kingdee:
+  k3cloud:
+    web-api:
+      server-url: http://xxx.xx.xxx.xxx/k3cloud/
+      acct-id: 663xxxxxxxxx5
+      user-name: Administrator
+      app-id: 2xxxx5_xxxxxxxxxxxxxxxxxxqxxxxxxxxxtG
+      app-sec: bxxxd7xxxx914c73bxxxxf65dxxxxxxxx6
+      lc-id: 2052
+      org-num: 100
+      connect-timeout: 360
+      request-timeout: 360
+      stock-timeout: 180
+      print-execute-url: on
