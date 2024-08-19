@@ -1,7 +1,7 @@
 # kingdee-k3cloud-open-api
 
 #### 介绍
-封装金蝶云星空的webapi接口，移除金蝶官方提供的jar包
+封装金蝶云星空的webapi接口
 
 #### 软件架构
 软件架构说明
