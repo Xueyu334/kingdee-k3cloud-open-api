@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.LockSupport;
 
 /**
  * 栈锁
@@ -72,9 +73,8 @@ public class TimeoutLockFreeSpinStackLock implements Lock {
                 stack.removeFirstOccurrence(currentThread); // 超时移除线程
                 return false;
             }
-            // 自旋等待
-            // 暂时让出 CPU
-            Thread.sleep(10);
+            // 自旋等待，减少忙等待的 CPU 资源浪费
+            LockSupport.parkNanos(10_000_000); // 10ms
         }
         return true;
     }
@@ -84,6 +84,8 @@ public class TimeoutLockFreeSpinStackLock implements Lock {
         Thread currentThread = Thread.currentThread();
         if (stack.peekFirst() == currentThread) {
             stack.pollFirst(); // 弹出栈顶元素（当前线程）
+        } else {
+            throw new IllegalMonitorStateException("The current thread does not hold the lock");
         }
     }
 
