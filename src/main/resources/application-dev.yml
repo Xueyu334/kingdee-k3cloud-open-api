@@ -2,6 +2,17 @@ spring:
   config:
     activate:
       on-profile: dev
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://XXX.XX.XX.XX:3306/k3_cloud_web?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+    username: root
+    password: XXXXXXXXXXX
+  batch:
+    jdbc:
+      initialize-schema: always
+    job:
+      enabled: false
 kingdee:
   k3cloud:
     web-api:

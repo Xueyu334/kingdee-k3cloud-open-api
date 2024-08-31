@@ -126,13 +126,28 @@
             <scope>system</scope>
             <systemPath>${project.basedir}/lib/k3cloud-webapi-sdk8.0.6.jar</systemPath>
         </dependency>
+        <!--   fst 快速序列号框架 -->
         <dependency>
             <groupId>de.ruedigermoeller</groupId>
             <artifactId>fst</artifactId>
             <version>3.0.3</version>
         </dependency>
+        <!-- spring  批处理作业 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-batch</artifactId>
+        </dependency>
+        <!--HikariCP-->
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+        </dependency>
+        <!--mysql-connector-j-->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+        </dependency>
     </dependencies>
-
     <dependencyManagement>
         <dependencies>
             <dependency>
