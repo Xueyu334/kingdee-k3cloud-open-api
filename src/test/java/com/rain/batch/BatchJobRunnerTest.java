@@ -27,7 +27,6 @@ public class BatchJobRunnerTest {
     @Test
     void test() throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException {
         stringItemReader.setCount(0);
-        stringItemReader.setParameter("a+as:");
         //作用： 唯一标识作业实例
         //控制作业行为
         //实现作业的重启和恢复
