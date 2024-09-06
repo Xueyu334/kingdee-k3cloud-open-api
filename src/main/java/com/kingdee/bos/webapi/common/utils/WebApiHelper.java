@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
 import com.alibaba.fastjson2.JSON;
 import com.kingdee.bos.webapi.common.exception.WebApiInvokeException;
+import com.kingdee.bos.webapi.common.exception.WebApiResponseValidationException;
 import com.kingdee.bos.webapi.common.fastjson.WebApiRespTypeReference;
 import com.kingdee.bos.webapi.domain.dto.request.*;
 import com.kingdee.bos.webapi.domain.dto.request.save.SaveRequest;
@@ -712,6 +713,9 @@ public class WebApiHelper {
                 request.setSendByte(fileBase64String);
                 // 调用接口上传
                 webApiResp = attachmentUploadResult(request);
+                if (!webApiResp.isSuccessfully()) {
+                    throw new WebApiResponseValidationException("上传文件出现异常!", webApiResp);
+                }
                 if (isLast) {
                     // 如果是最后一块，则退出循环
                     break;
