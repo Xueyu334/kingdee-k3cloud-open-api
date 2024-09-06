@@ -619,8 +619,33 @@ public class WebApiHelper {
      * @param function 操作
      * @return 操作结果
      */
-    public  <V> V executeByK3CloudApi(Function<K3CloudApi, V> function) {
+    public <V> V executeByK3CloudApi(Function<K3CloudApi, V> function) {
         return function.apply(k3CloudApi);
     }
+
+    /**
+     * 附件上传接口
+     *
+     * @param data 数据
+     * @return 附件上传响应结果
+     */
+    public String attachmentUpload(String data) {
+        try {
+            return k3CloudApi.attachmentUpload(data);
+        } catch (Exception e) {
+            throw new WebApiInvokeException("附件上传异常!", e);
+        }
+    }
+
+    /**
+     * 附件上传接口
+     *
+     * @param attachmentUpLoadRequest 数据 {@link  AttachmentUpLoadRequest}
+     * @return 附件上传响应结果
+     */
+    public String attachmentUpload(AttachmentUpLoadRequest attachmentUpLoadRequest) {
+        return attachmentUpload(JSON.toJSONString(attachmentUpLoadRequest));
+    }
+
 
 }

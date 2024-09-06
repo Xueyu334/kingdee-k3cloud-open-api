@@ -84,7 +84,6 @@ public class WebApiProperties {
     public void setProxy(String proxy) {
         if (StringUtils.isBlank(proxy)) {
             this.proxy = null;
-
         } else {
             this.proxy = proxy;
         }
