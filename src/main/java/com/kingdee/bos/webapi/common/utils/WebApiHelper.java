@@ -94,6 +94,16 @@ public class WebApiHelper {
     }
 
     /**
+     * 转换结果为 {@link  WebApiResp<AttachmentUploadResult>}
+     *
+     * @param respStr json结果
+     * @return WebApiResp
+     */
+    private static WebApiResp<AttachmentUploadResult> parseAttachmentUploadWebApiResponse(String respStr) {
+        return JSON.parseObject(respStr, WebApiRespTypeReference.ATTACHMENT_UPLOAD_TYPE_REFERENCE);
+    }
+
+    /**
      * 保存操作
      *
      * @param formId 单据的formId
@@ -647,5 +657,15 @@ public class WebApiHelper {
         return attachmentUpload(JSON.toJSONString(attachmentUpLoadRequest));
     }
 
+    /**
+     * 附件上传接口
+     *
+     * @param attachmentUpLoadRequest 数据 {@link  AttachmentUpLoadRequest}
+     * @return 附件上传响应结果
+     */
+    public WebApiResp<AttachmentUploadResult> attachmentUploadResult(AttachmentUpLoadRequest attachmentUpLoadRequest) {
+        String respStr = attachmentUpload(attachmentUpLoadRequest);
+        return parseAttachmentUploadWebApiResponse(respStr);
+    }
 
 }
