@@ -15,8 +15,10 @@ import com.kingdee.bos.webapi.entity.RepoStatus;
 import com.kingdee.bos.webapi.sdk.K3CloudApi;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
-import java.util.Optional;
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -102,6 +104,7 @@ public class WebApiHelper {
     private static WebApiResp<AttachmentUploadResult> parseAttachmentUploadWebApiResponse(String respStr) {
         return JSON.parseObject(respStr, WebApiRespTypeReference.ATTACHMENT_UPLOAD_TYPE_REFERENCE);
     }
+
 
     /**
      * 保存操作
@@ -269,7 +272,6 @@ public class WebApiHelper {
         return parseOperatorWebApiResponse(submit);
     }
 
-
     /**
      * 提交
      *
@@ -279,7 +281,6 @@ public class WebApiHelper {
     public WebApiResp<OperatorResult> submitResult(SubmitRequest submitRequest) {
         return submitResult(submitRequest.getFormId(), JSON.toJSONString(submitRequest));
     }
-
 
     /**
      * 审核
@@ -666,6 +667,58 @@ public class WebApiHelper {
     public WebApiResp<AttachmentUploadResult> attachmentUploadResult(AttachmentUpLoadRequest attachmentUpLoadRequest) {
         String respStr = attachmentUpload(attachmentUpLoadRequest);
         return parseAttachmentUploadWebApiResponse(respStr);
+    }
+
+    /**
+     * 分块上传文件附件 针对大文件上传
+     *
+     * @param request     附件上传
+     * @param inputStream 输入流
+     * @param blockSize   分块的大小
+     * @return 附件响应信息
+     * @throws IOException io异常
+     */
+    public WebApiResp<AttachmentUploadResult> attachmentSplitUpload(AttachmentUpLoadRequest request,
+                                                                    InputStream inputStream, int blockSize) throws IOException {
+        Assert.isTrue(blockSize > 0, () -> new IllegalArgumentException("blockSize must be a value greater than 0"));
+        Assert.notNull(inputStream, () -> new IOException("inputStream can not be null!"));
+        byte[] content = new byte[blockSize];
+        WebApiResp<AttachmentUploadResult> webApiResp = null;
+        try (BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream, blockSize);) {
+            // 处理流为空的情况
+            bufferedInputStream.mark(1);
+            if (bufferedInputStream.read() == -1) {
+                throw new IOException("inputStream can not be empty!");
+            }
+            bufferedInputStream.reset();
+            // 提前实例化Base64编码器
+            Base64.Encoder encoder = Base64.getEncoder();
+            //循环分块读取和上传
+            while (true) {
+                int size = bufferedInputStream.read(content);
+                if (size == -1) {
+                    // 读取完毕，退出循环
+                    break;
+                }
+                //是否最后一串
+                boolean isLast = (size != blockSize);
+                byte[] uploadBytes = Arrays.copyOf(content, size);
+                String fileBase64String = encoder.encodeToString(uploadBytes);
+                // 设置上传请求数据
+                if (Objects.nonNull(webApiResp)) {
+                    request.setFileId(webApiResp.getResult().getFileId());
+                }
+                request.setIsLast(isLast);
+                request.setSendByte(fileBase64String);
+                // 调用接口上传
+                webApiResp = attachmentUploadResult(request);
+                if (isLast) {
+                    // 如果是最后一块，则退出循环
+                    break;
+                }
+            }
+            return webApiResp;
+        }
     }
 
 }
