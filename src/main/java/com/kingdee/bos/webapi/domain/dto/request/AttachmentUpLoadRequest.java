@@ -7,6 +7,11 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
+/**
+ * 附件上传请求参数
+ *
+ * @author xueyu
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

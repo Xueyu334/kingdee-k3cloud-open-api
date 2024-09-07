@@ -16,9 +16,11 @@ import com.kingdee.bos.webapi.entity.RepoStatus;
 import com.kingdee.bos.webapi.sdk.K3CloudApi;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -106,6 +108,15 @@ public class WebApiHelper {
         return JSON.parseObject(respStr, WebApiRespTypeReference.ATTACHMENT_UPLOAD_TYPE_REFERENCE);
     }
 
+    /**
+     * 转换结果为 {@link  WebApiResp<AttachmentDownLoadResult>}
+     *
+     * @param respStr json结果
+     * @return WebApiResp
+     */
+    private static WebApiResp<AttachmentDownLoadResult> parseAttachmentDownLoadWebApiResponse(String respStr) {
+        return JSON.parseObject(respStr, WebApiRespTypeReference.ATTACHMENT_DOWNLOAD_TYPE_REFERENCE);
+    }
 
     /**
      * 保存操作
@@ -723,6 +734,104 @@ public class WebApiHelper {
             }
             return webApiResp;
         }
+    }
+
+
+    /**
+     * 附件下载
+     *
+     * @param data 请求参数
+     * @return 响应数据
+     */
+    public String attachmentDownLoad(String data) {
+        try {
+            return k3CloudApi.attachmentDownLoad(data);
+        } catch (Exception e) {
+            throw new WebApiInvokeException("附件下载出现异常!", e);
+        }
+    }
+
+    /**
+     * 附件下载
+     *
+     * @param request 请求参数
+     * @return 响应数据
+     */
+    public String attachmentDownLoad(AttachmentDownLoadRequest request) {
+        return attachmentDownLoad(JSON.toJSONString(request));
+    }
+
+    /**
+     * 附件下载
+     *
+     * @param request 请求参数
+     * @return 响应数据 {@link WebApiResp<AttachmentDownLoadRequest>}
+     */
+    public WebApiResp<AttachmentDownLoadResult> attachmentDownLoadResult(AttachmentDownLoadRequest request) {
+        String resp = attachmentDownLoad(request);
+        return parseAttachmentDownLoadWebApiResponse(resp);
+    }
+
+    /**
+     * 文件分块下载 针对大文件下载
+     *
+     * @param fileId  附件id
+     * @param dirPath 文件夹路径 存放文件的文件夹路径
+     * @return 文件
+     */
+    public File attachmentSplitDownload(String fileId, String dirPath) throws IOException {
+        Assert.notBlank(fileId, () -> new IllegalArgumentException("附件id必填!"));
+        Assert.notBlank(dirPath, () -> new IllegalArgumentException("文件夹路径必填!"));
+        // 提前判断路径是否存在并创建目录
+        Path directories = Paths.get(dirPath);
+        if (!Files.exists(directories)) {
+            directories = Files.createDirectories(directories);
+            log.info("Directory created: {}", dirPath);
+        }
+        AttachmentDownLoadRequest request = new AttachmentDownLoadRequest(fileId, 0L);
+        boolean isLast = false;
+        Path filePath = null;
+        Base64.Decoder decoder = Base64.getDecoder();
+        while (!isLast) {
+            WebApiResp<AttachmentDownLoadResult> webApiRespResult = attachmentDownLoadResult(request);
+            if (!webApiRespResult.isSuccessfully()) {
+                throw new WebApiResponseValidationException("附件下载失败!", webApiRespResult);
+            }
+            AttachmentDownLoadResult result = webApiRespResult.getResult();
+            //是否最后一块
+            isLast = result.getIsLast();
+            if (!isLast) {
+                //设置下次下载的位置
+                Long startIndex = result.getStartIndex();
+                request.setStartIndex(startIndex);
+            }
+            //设置文件
+            String fileName = result.getFileName();
+            filePath = directories.resolve(fileName);
+            // 确保文件存在
+            if (!Files.exists(filePath)) {
+                Files.createFile(filePath);
+            }
+            //获取base64的文件编码字符串
+            String filePart = result.getFilePart();
+            try (OutputStream out = Files.newOutputStream(filePath, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                 BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(out)) {
+                byte[] b = decoder.decode(filePart);
+                for (int i = 0; i < b.length; ++i) {
+                    if (b[i] < 0) {
+                        //调整异常数据
+                        b[i] += (byte) 256;
+                    }
+                }
+                bufferedOutputStream.write(b);
+                bufferedOutputStream.flush();
+            } catch (IOException e) {
+                log.error("Error writing file chunk: fileName={}, error={}", fileName, e.getMessage(), e);
+                throw e;
+            }
+            log.info("Downloaded file chunk: fileName={}, startIndex={}", fileName, request.getStartIndex());
+        }
+        return filePath.toFile();
     }
 
 }

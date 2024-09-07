@@ -30,5 +30,8 @@ public class WebApiRespTypeReference {
     public static final TypeReference<WebApiResp<AttachmentUploadResult>> ATTACHMENT_UPLOAD_TYPE_REFERENCE = new TypeReference<WebApiResp<AttachmentUploadResult>>() {
     };
 
+    public static final TypeReference<WebApiResp<AttachmentDownLoadResult>> ATTACHMENT_DOWNLOAD_TYPE_REFERENCE = new TypeReference<WebApiResp<AttachmentDownLoadResult>>() {
+    };
+
 
 }
