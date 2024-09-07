@@ -828,4 +828,16 @@ public class WebApiHelper {
         return filePath.toFile();
     }
 
+
+    /**
+     * 万能API获取报表数据
+     * 打开金蝶云星空客户端 搜索报表API工具 可以在线调试获取入参
+     *
+     * @param reqJson 请求参数 打开金蝶云星空客户端 搜索报表API工具 可以在线调试获取入参
+     * @return 响应结果
+     */
+    public String getReportData(String reqJson) {
+        String serviceName = "Kingdee.BOS.KDS.ServiceFacade.ServicesStub.KDSReportAPIStub.GetReportData,Kingdee.BOS.KDS.ServiceFacade.ServicesStub";
+        return execute(serviceName, reqJson);
+    }
 }
