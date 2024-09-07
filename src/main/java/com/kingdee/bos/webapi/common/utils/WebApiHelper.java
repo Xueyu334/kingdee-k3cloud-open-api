@@ -696,7 +696,7 @@ public class WebApiHelper {
         Assert.notNull(inputStream, () -> new IOException("inputStream can not be null!"));
         byte[] content = new byte[blockSize];
         WebApiResp<AttachmentUploadResult> webApiResp = null;
-        try (BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream, blockSize);) {
+        try (BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream, blockSize)) {
             // 处理流为空的情况
             bufferedInputStream.mark(1);
             if (bufferedInputStream.read() == -1) {
