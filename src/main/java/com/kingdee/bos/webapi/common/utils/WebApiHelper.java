@@ -816,14 +816,8 @@ public class WebApiHelper {
             String filePart = result.getFilePart();
             try (OutputStream out = Files.newOutputStream(filePath, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
                  BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(out)) {
-                byte[] b = decoder.decode(filePart);
-                for (int i = 0; i < b.length; ++i) {
-                    if (b[i] < 0) {
-                        //调整异常数据
-                        b[i] += (byte) 256;
-                    }
-                }
-                bufferedOutputStream.write(b);
+                byte[] bytes = decoder.decode(filePart);
+                bufferedOutputStream.write(bytes);
                 bufferedOutputStream.flush();
             } catch (IOException e) {
                 log.error("Error writing file chunk: fileName={}, error={}", fileName, e.getMessage(), e);
