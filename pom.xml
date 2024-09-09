@@ -161,6 +161,13 @@
             <artifactId>eclipse-collections</artifactId>
             <version>${eclipse-collections.version}</version>
         </dependency>
+        <!--httpclient5-->
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+            <version>5.3.1</version>
+        </dependency>
+
     </dependencies>
     <dependencyManagement>
         <dependencies>
