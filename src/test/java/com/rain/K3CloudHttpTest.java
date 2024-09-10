@@ -20,6 +20,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 @Slf4j
 public class K3CloudHttpTest {
@@ -100,7 +101,7 @@ public class K3CloudHttpTest {
                 String string = EntityUtils.toString(entity, StandardCharsets.UTF_8);
                 log.info("{}", string);
                 Header[] headers = classicHttpResponse.getHeaders();
-                log.info("{}", headers);
+                log.info("{}", Arrays.toString(headers));
             }
             params.put("Number", "");
             params.put("Id", "1001");
