@@ -25,7 +25,7 @@ class K3CloudOpenApiApplicationTests {
         K3CloudApi api = new K3CloudApi();
         String json = " {\"FileId\": " + "\"" + fileid + "\"" + ", \"StartIndex\": 0}";
         String result = api.attachmentDownLoad(json);
-        JsonObject resultObject = new JsonParser().parse(result).getAsJsonObject();
+        JsonObject resultObject = JsonParser.parseString(result).getAsJsonObject();
         JsonObject data = resultObject.get("Result").getAsJsonObject();
         String fileName = data.get("FileName").getAsString();
         boolean isLast = data.get("IsLast").getAsBoolean();
