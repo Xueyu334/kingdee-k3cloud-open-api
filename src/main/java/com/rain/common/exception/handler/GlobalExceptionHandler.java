@@ -16,6 +16,7 @@ import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -284,5 +285,12 @@ public class GlobalExceptionHandler {
     public R<?> exceptionHandler(ConstraintDeclarationException e) {
         log.error("", e);
         return R.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "系统出现异常,请联系管理员!");
+    }
+
+    @ExceptionHandler(value = HttpMediaTypeNotAcceptableException.class)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public R<?> exceptionHandler(HttpMediaTypeNotAcceptableException e) {
+        return R.error(HttpStatus.NOT_ACCEPTABLE.value(), e.getMessage());
     }
 }
