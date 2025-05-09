@@ -6,6 +6,10 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @deprecated FST 是为 JDK6~JDK8 设计的，JDK9+ 属于非官方支持，JDK17+ 已非常不建议使用。  建议切换 Kryo、Protobuf、Avro 或 Hessian
+ */
+@Deprecated
 @Slf4j
 class FSTSerialUtilTest {
 
