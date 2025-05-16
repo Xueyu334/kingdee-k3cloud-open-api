@@ -3,9 +3,10 @@ package com.kingdee.bos.webapi.common.utils;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
 import com.alibaba.fastjson2.JSON;
+import com.kingdee.bos.webapi.common.convert.ConvertApiResponse;
+import com.kingdee.bos.webapi.common.convert.fastjson.FastJsonConvertApiResponse;
 import com.kingdee.bos.webapi.common.exception.WebApiInvokeException;
 import com.kingdee.bos.webapi.common.exception.WebApiResponseValidationException;
-import com.kingdee.bos.webapi.common.fastjson.WebApiRespTypeReference;
 import com.kingdee.bos.webapi.domain.dto.request.*;
 import com.kingdee.bos.webapi.domain.dto.request.save.SaveRequest;
 import com.kingdee.bos.webapi.domain.dto.response.WebApiResp;
@@ -33,89 +34,61 @@ import java.util.stream.Collectors;
 @Slf4j
 public class WebApiHelper {
 
+
+    /**
+     * 服务名称常量，用于标识获取报表数据的服务接口。
+     * 该字符串定义了报表数据服务的全限定名，包括命名空间、类名及方法名。
+     * 主要用于在系统中定位和调用与报表数据相关的服务。
+     */
+    private final static String GET_REPORT_DATA_SERVICE_NAME = "Kingdee.BOS.KDS.ServiceFacade.ServicesStub.KDSReportAPIStub.GetReportData,Kingdee.BOS.KDS.ServiceFacade.ServicesStub";
+
+
     /**
      * 客户端
      */
     private final K3CloudApi k3CloudApi;
+    /**
+     * 用于存储转换后的API响应数据的私有最终变量。
+     * 该变量持有将API原始响应经过处理或格式化后的结果，
+     * 确保在程序运行期间不会被修改，从而保证数据的一致性和安全性。
+     * 其具体类型和结构由 ConvertApiResponse 定义，通常包含解析后的内容或状态信息。
+     */
+    private final ConvertApiResponse convertApiResponse;
 
-
-    private WebApiHelper(K3CloudApi k3CloudApi) {
+    /**
+     * WebApiHelper类的私有构造函数，用于初始化WebApiHelper实例。
+     * 该构造函数通过传入的K3CloudApi和ConvertApiResponse对象来配置当前实例。
+     *
+     * @param k3CloudApi         与K3Cloud进行交互的API接口实现，用于执行具体的Web API调用操作
+     * @param convertApiResponse 负责将API响应数据转换为指定格式的处理类，用于解析和处理返回结果
+     */
+    private WebApiHelper(K3CloudApi k3CloudApi, ConvertApiResponse convertApiResponse) {
         this.k3CloudApi = k3CloudApi;
+        this.convertApiResponse = convertApiResponse;
     }
 
+    /**
+     * 根据指定的云星空WebApi客户端和默认的响应转换器创建WebApiHelper实例。
+     *
+     * @param k3CloudApi 云星空WebApi客户端，不能为空
+     * @return 返回一个WebApiHelper实例，该实例包含云星空WebApi客户端和默认的响应转换器
+     */
     public static WebApiHelper of(final K3CloudApi k3CloudApi) {
         Assert.notNull(k3CloudApi, () -> new NullPointerException("云星空WebApi客户端不能为空!"));
-        return new WebApiHelper(k3CloudApi);
+        return of(k3CloudApi, new FastJsonConvertApiResponse());
     }
 
     /**
-     * 转换结果为 {@link  WebApiResp<OperatorResult>}
+     * 创建并返回一个 WebApiHelper 实例。
      *
-     * @param respStr json结果
-     * @return WebApiResp
+     * @param k3CloudApi         云星空WebApi客户端，不能为空。如果为空，则抛出 NullPointerException 异常。
+     * @param convertApiResponse 响应消息转换插件，不能为空。如果为空，则抛出 NullPointerException 异常。
+     * @return 返回一个包含指定云星空WebApi客户端和响应消息转换插件的 WebApiHelper 实例。
      */
-    private static WebApiResp<OperatorResult> parseOperatorWebApiResponse(String respStr) {
-        return JSON.parseObject(respStr, WebApiRespTypeReference.OPERATOR_TYPE_REFERENCE);
-    }
-
-    /**
-     * 转换结果为 {@link  WebApiResp<SaveResult>}
-     *
-     * @param respStr json结果
-     * @return WebApiResp
-     */
-    private static WebApiResp<SaveResult> parseSaveWebApiResponse(String respStr) {
-        return JSON.parseObject(respStr, WebApiRespTypeReference.SAVE_TYPE_REFERENCE);
-    }
-
-    /**
-     * 转换结果为 {@link  WebApiResp<ViewResult>}
-     *
-     * @param respStr json结果
-     * @return WebApiResp
-     */
-    private static WebApiResp<ViewResult> parseViewWebApiResponse(String respStr) {
-        return JSON.parseObject(respStr, WebApiRespTypeReference.VIEW_TYPE_REFERENCE);
-    }
-
-    /**
-     * 转换结果为 {@link  WebApiResp<ConvertResult>}
-     *
-     * @param respStr json结果
-     * @return WebApiResp
-     */
-    private static WebApiResp<ConvertResult> parseConvertWebApiResponse(String respStr) {
-        return JSON.parseObject(respStr, WebApiRespTypeReference.CONVERT_TYPE_REFERENCE);
-    }
-
-    /**
-     * 转换结果为 {@link  WebApiResp<BatchSaveResult>}
-     *
-     * @param respStr json结果
-     * @return WebApiResp
-     */
-    private static WebApiResp<BatchSaveResult> parseBatchSaveWebApiResponse(String respStr) {
-        return JSON.parseObject(respStr, WebApiRespTypeReference.BATCH_SAVE_TYPE_REFERENCE);
-    }
-
-    /**
-     * 转换结果为 {@link  WebApiResp<AttachmentUploadResult>}
-     *
-     * @param respStr json结果
-     * @return WebApiResp
-     */
-    private static WebApiResp<AttachmentUploadResult> parseAttachmentUploadWebApiResponse(String respStr) {
-        return JSON.parseObject(respStr, WebApiRespTypeReference.ATTACHMENT_UPLOAD_TYPE_REFERENCE);
-    }
-
-    /**
-     * 转换结果为 {@link  WebApiResp<AttachmentDownLoadResult>}
-     *
-     * @param respStr json结果
-     * @return WebApiResp
-     */
-    private static WebApiResp<AttachmentDownLoadResult> parseAttachmentDownLoadWebApiResponse(String respStr) {
-        return JSON.parseObject(respStr, WebApiRespTypeReference.ATTACHMENT_DOWNLOAD_TYPE_REFERENCE);
+    public static WebApiHelper of(final K3CloudApi k3CloudApi, final ConvertApiResponse convertApiResponse) {
+        Assert.notNull(k3CloudApi, () -> new NullPointerException("云星空WebApi客户端不能为空!"));
+        Assert.notNull(convertApiResponse, () -> new NullPointerException("响应消息转换插件不能为空!"));
+        return new WebApiHelper(k3CloudApi, convertApiResponse);
     }
 
     /**
@@ -142,7 +115,7 @@ public class WebApiHelper {
      */
     public WebApiResp<SaveResult> saveResult(String formId, String data) {
         String saveRespStr = save(formId, data);
-        return parseSaveWebApiResponse(saveRespStr);
+        return convertApiResponse.parseSaveWebApiResponse(saveRespStr);
     }
 
     /**
@@ -179,7 +152,7 @@ public class WebApiHelper {
      */
     public WebApiResp<OperatorResult> deleteResult(String formId, String jsonData) {
         String delete = delete(formId, jsonData);
-        return parseOperatorWebApiResponse(delete);
+        return convertApiResponse.parseOperatorWebApiResponse(delete);
     }
 
     /**
@@ -206,7 +179,7 @@ public class WebApiHelper {
      */
     public WebApiResp<SaveResult> draftResult(String formId, String jsonData) {
         String draft = draft(formId, jsonData);
-        return parseSaveWebApiResponse(draft);
+        return convertApiResponse.parseSaveWebApiResponse(draft);
     }
 
     /**
@@ -217,7 +190,7 @@ public class WebApiHelper {
      */
     public WebApiResp<SaveResult> draftResult(SaveRequest saveRequest) {
         String draft = draft(saveRequest.getFormId(), JSON.toJSONString(saveRequest));
-        return parseSaveWebApiResponse(draft);
+        return convertApiResponse.parseSaveWebApiResponse(draft);
     }
 
     /**
@@ -244,7 +217,7 @@ public class WebApiHelper {
      */
     public WebApiResp<ViewResult> viewResult(String formId, String jsonData) {
         String view = view(formId, jsonData);
-        return parseViewWebApiResponse(view);
+        return convertApiResponse.parseViewWebApiResponse(view);
     }
 
     /**
@@ -281,7 +254,7 @@ public class WebApiHelper {
      */
     public WebApiResp<OperatorResult> submitResult(String formId, String jsonData) {
         String submit = submit(formId, jsonData);
-        return parseOperatorWebApiResponse(submit);
+        return convertApiResponse.parseOperatorWebApiResponse(submit);
     }
 
     /**
@@ -318,7 +291,7 @@ public class WebApiHelper {
      */
     public WebApiResp<OperatorResult> auditResult(String formId, String jsonData) {
         String audit = audit(formId, jsonData);
-        return parseOperatorWebApiResponse(audit);
+        return convertApiResponse.parseOperatorWebApiResponse(audit);
     }
 
     /**
@@ -355,7 +328,7 @@ public class WebApiHelper {
      */
     public WebApiResp<OperatorResult> unAuditResult(String formId, String jsonData) {
         String unAudit = unAudit(formId, jsonData);
-        return parseOperatorWebApiResponse(unAudit);
+        return convertApiResponse.parseOperatorWebApiResponse(unAudit);
     }
 
     /**
@@ -392,7 +365,7 @@ public class WebApiHelper {
      */
     public WebApiResp<OperatorResult> cancelAssignResult(String formId, String jsonData) {
         String cancelAssign = cancelAssign(formId, jsonData);
-        return parseOperatorWebApiResponse(cancelAssign);
+        return convertApiResponse.parseOperatorWebApiResponse(cancelAssign);
     }
 
     /**
@@ -429,7 +402,7 @@ public class WebApiHelper {
      */
     public WebApiResp<ConvertResult> pushResult(String formId, String jsonData) {
         String push = push(formId, jsonData);
-        return parseConvertWebApiResponse(push);
+        return convertApiResponse.parseConvertWebApiResponse(push);
     }
 
     /**
@@ -466,7 +439,7 @@ public class WebApiHelper {
      */
     public WebApiResp<OperatorResult> cancelResult(String formId, String jsonData) {
         String cancel = cancel(formId, jsonData);
-        return parseOperatorWebApiResponse(cancel);
+        return convertApiResponse.parseOperatorWebApiResponse(cancel);
     }
 
     /**
@@ -503,7 +476,7 @@ public class WebApiHelper {
      */
     public WebApiResp<OperatorResult> billCloseResult(String formId, String jsonData) {
         String billClose = billClose(formId, jsonData);
-        return parseOperatorWebApiResponse(billClose);
+        return convertApiResponse.parseOperatorWebApiResponse(billClose);
     }
 
     /**
@@ -540,7 +513,7 @@ public class WebApiHelper {
      */
     public WebApiResp<OperatorResult> billUnCloseResult(String formId, String jsonData) {
         String billUnClose = billUnClose(formId, jsonData);
-        return parseOperatorWebApiResponse(billUnClose);
+        return convertApiResponse.parseOperatorWebApiResponse(billUnClose);
     }
 
     /**
@@ -577,7 +550,7 @@ public class WebApiHelper {
      */
     public WebApiResp<BatchSaveResult> batchSaveResult(String formId, String jsonData) {
         String batchSave = batchSave(formId, jsonData);
-        return parseBatchSaveWebApiResponse(batchSave);
+        return convertApiResponse.parseBatchSaveWebApiResponse(batchSave);
     }
 
     /**
@@ -678,7 +651,7 @@ public class WebApiHelper {
      */
     public WebApiResp<AttachmentUploadResult> attachmentUploadResult(AttachmentUpLoadRequest attachmentUpLoadRequest) {
         String respStr = attachmentUpload(attachmentUpLoadRequest);
-        return parseAttachmentUploadWebApiResponse(respStr);
+        return convertApiResponse.parseAttachmentUploadWebApiResponse(respStr);
     }
 
     /**
@@ -736,7 +709,6 @@ public class WebApiHelper {
         }
     }
 
-
     /**
      * 附件下载
      *
@@ -769,7 +741,7 @@ public class WebApiHelper {
      */
     public WebApiResp<AttachmentDownLoadResult> attachmentDownLoadResult(AttachmentDownLoadRequest request) {
         String resp = attachmentDownLoad(request);
-        return parseAttachmentDownLoadWebApiResponse(resp);
+        return convertApiResponse.parseAttachmentDownLoadWebApiResponse(resp);
     }
 
     /**
@@ -785,7 +757,7 @@ public class WebApiHelper {
         // 提前判断路径是否存在并创建目录
         Path directories = Paths.get(dirPath);
         if (!Files.exists(directories)) {
-            directories = Files.createDirectories(directories);
+            Files.createDirectories(directories);
             log.info("Directory created: {}", dirPath);
         }
         AttachmentDownLoadRequest request = new AttachmentDownLoadRequest(fileId, 0L);
@@ -828,7 +800,6 @@ public class WebApiHelper {
         return filePath.toFile();
     }
 
-
     /**
      * 万能API获取报表数据
      * 打开金蝶云星空客户端 搜索报表API工具 可以在线调试获取入参
@@ -837,7 +808,6 @@ public class WebApiHelper {
      * @return 响应结果
      */
     public String getReportData(String reqJson) {
-        String serviceName = "Kingdee.BOS.KDS.ServiceFacade.ServicesStub.KDSReportAPIStub.GetReportData,Kingdee.BOS.KDS.ServiceFacade.ServicesStub";
-        return execute(serviceName, reqJson);
+        return execute(GET_REPORT_DATA_SERVICE_NAME, reqJson);
     }
 }

@@ -1,4 +1,4 @@
-package com.kingdee.bos.webapi.common.fastjson;
+package com.kingdee.bos.webapi.common.convert.fastjson;
 
 
 import com.alibaba.fastjson2.TypeReference;
