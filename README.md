@@ -78,7 +78,7 @@ kingdee:
       org-num: 100                               # 组织机构ID
       connect-timeout: 360                       # 连接超时时间（秒）
       request-timeout: 360                       # 请求超时时间（秒）
-      stock-timeout: 180                         # 库存相关操作超时时间（秒）
+      stock-timeout: 180                         # 套接字超时时间（秒）
       print-execute-url: on                      # 是否打印执行的URL
       lc-id: 2052
       org-num: 100
