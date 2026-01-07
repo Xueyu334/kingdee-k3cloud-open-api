@@ -172,7 +172,7 @@ public void loginExample() {
 
 - `connect-timeout`: 连接超时时间（秒），默认 360
 - `request-timeout`: 请求超时时间（秒），默认 360
-- `stock-timeout`: 库存相关操作超时时间（秒），默认 180
+- `stock-timeout`: 套接字超时时间（秒），默认 180
 
 ### 日志配置
 
