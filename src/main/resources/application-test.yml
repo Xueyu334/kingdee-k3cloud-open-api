@@ -5,11 +5,11 @@ spring:
 kingdee:
   k3cloud:
     web-api:
-      server-url: http://xxx.xx.xxx.xxx/k3cloud/
-      acct-id: 663xxxxxxxxx5
-      user-name: Administrator
-      app-id: 2xxxx5_xxxxxxxxxxxxxxxxxxqxxxxxxxxxtG
-      app-sec: bxxxd7xxxx914c73bxxxxf65dxxxxxxxx6
+      server-url: http://your-k3cloud-server/k3cloud/
+      acct-id: your-acct-id
+      user-name: your-user-name
+      app-id: your-app-id
+      app-sec: your-app-sec
       lc-id: 2052
       org-num: 100
       connect-timeout: 360

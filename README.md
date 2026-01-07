@@ -43,7 +43,6 @@ kingdee-k3cloud-open-api
 ├── src/main/java/com/rain/                   # 业务代码
 │   ├── common/                               # 通用组件
 │   ├── config/                               # 配置类
-│   ├── controller/                           # 控制器
 │   └── domain/                               # 领域对象
 ├── src/main/resources/                       # 资源文件
 │   ├── application.yml                       # 主配置文件
@@ -51,8 +50,6 @@ kingdee-k3cloud-open-api
 │   ├── application-test.yml                  # 测试环境配置
 │   ├── application-prod.yml                  # 生产环境配置
 │   └── logback-spring.xml                    # 日志配置
-└── lib/                                      # 本地依赖库
-    └── k3cloud-webapi-sdk8.0.6.jar          # 金蝶 SDK
 ```
 
 ## 快速开始
@@ -64,17 +61,25 @@ kingdee-k3cloud-open-api
 
 ### 2. 配置文件
 
-修改 `src/main/resources/application-dev.yml` 中的金蝶云星空配置：
+修改 `src/main/resources/application-dev.yml`、`application-test.yml` 或 `application-prod.yml` 中金蝶云星空相关的配置项。
+请将以下占位符替换为您的实际凭据和服务器信息：
+
 
 ```yaml
 kingdee:
   k3cloud:
     web-api:
-      server-url: http://your-k3cloud-server/k3cloud/
-      acct-id: your-account-id
-      user-name: your-username
-      app-id: your-app-id
-      app-sec: your-app-secret
+      server-url: http://your-k3cloud-server/k3cloud/  # 金蝶云星空 WebApi 服务器地址
+      acct-id: your-acct-id                      # 账套ID
+      user-name: your-user-name                  # 用户名
+      app-id: your-app-id                        # 应用ID (App ID)
+      app-sec: your-app-sec                      # 应用密钥 (App Secret)
+      lc-id: 2052                                # 语言设置，例如 2052 代表简体中文
+      org-num: 100                               # 组织机构ID
+      connect-timeout: 360                       # 连接超时时间（秒）
+      request-timeout: 360                       # 请求超时时间（秒）
+      stock-timeout: 180                         # 库存相关操作超时时间（秒）
+      print-execute-url: on                      # 是否打印执行的URL
       lc-id: 2052
       org-num: 100
       connect-timeout: 360
@@ -139,6 +144,24 @@ public void saveData() {
     WebApiResp<SaveResult> response = webApiHelper.saveResult(request);
     if (response.getResult().getResponseStatus().isIsSuccess()) {
         // 处理成功结果
+    }
+}
+```
+
+### 通过 WebApiHelper 登录示例
+
+```java
+@Autowired
+private WebApiHttpHelper webApiHttpHelper;
+
+public void loginExample() {
+    // 调用登录方法
+    LoginResult loginResult = webApiHttpHelper.loginBySign();
+
+    if (loginResult != null && loginResult.isLoginSuccess()) {
+        System.out.println("登录成功，SessionId: " + loginResult.getKdsvcSessionId());
+    } else {
+        System.out.println("登录失败: " + loginResult.getMessage());
     }
 }
 ```

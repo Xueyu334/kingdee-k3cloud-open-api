@@ -6,6 +6,8 @@ import com.kingdee.bos.webapi.domain.dto.response.WebApiResp;
 import com.kingdee.bos.webapi.domain.dto.response.result.*;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
+
 /**
  * FastJsonConvertApiResponse 是 ConvertApiResponse 的具体实现类，用于将 JSON 格式的 API 响应字符串解析为特定类型的 {@link WebApiResp} 对象。
  * 该类利用 FastJSON 提供的解析能力，结合预定义的类型引用（{@link WebApiRespTypeReference}），将响应字符串转换为包含特定业务结果的泛型对象。
@@ -92,5 +94,25 @@ public class FastJsonConvertApiResponse extends ConvertApiResponse {
         return JSON.parseObject(respStr, WebApiRespTypeReference.ATTACHMENT_DOWNLOAD_TYPE_REFERENCE);
     }
 
+    /**
+     * 转换结果为 {@link LoginResult}
+     *
+     * @param respStr json结果
+     * @return LoginResult
+     */
+    @Override
+    public LoginResult parseLoginResponse(String respStr) {
+        return JSON.parseObject(respStr, LoginResult.class);
+    }
 
+    /**
+     * 转换结果为 {@link java.util.List} 的 {@link java.util.List<Object>}
+     *
+     * @param respStr json结果
+     * @return List<List<Object>>
+     */
+    @Override
+    public List<List<Object>> parseListListObjectApiResponse(String respStr) {
+        return JSON.parseObject(respStr, WebApiRespTypeReference.LIST_LIST_OBJECT_TYPE_REFERENCE);
+    }
 }

@@ -3,6 +3,8 @@ package com.kingdee.bos.webapi.common.convert;
 import com.kingdee.bos.webapi.domain.dto.response.WebApiResp;
 import com.kingdee.bos.webapi.domain.dto.response.result.*;
 
+import java.util.List;
+
 /**
  * 抽象类，用于将API响应字符串解析为特定类型的 {@link WebApiResp} 对象。
  * 提供了一系列抽象方法，用于处理不同业务场景下的API响应解析。
@@ -72,5 +74,19 @@ public abstract class ConvertApiResponse {
      */
     public abstract WebApiResp<AttachmentDownLoadResult> parseAttachmentDownLoadWebApiResponse(String respStr);
 
+    /**
+     * 转换结果为 {@link LoginResult}
+     *
+     * @param respStr json结果
+     * @return LoginResult
+     */
+    public abstract LoginResult parseLoginResponse(String respStr);
 
+    /**
+     * 转换结果为 {@link java.util.List} 的 {@link java.util.List<Object>}
+     *
+     * @param respStr json结果
+     * @return List<List<Object>>
+     */
+    public abstract List<List<Object>> parseListListObjectApiResponse(String respStr);
 }
