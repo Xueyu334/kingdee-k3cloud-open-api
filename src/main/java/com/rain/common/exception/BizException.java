@@ -2,7 +2,6 @@ package com.rain.common.exception;
 
 import cn.hutool.core.util.StrUtil;
 import lombok.Getter;
-import org.springframework.http.HttpStatus;
 
 import java.io.Serial;
 
@@ -29,7 +28,7 @@ public class BizException extends RuntimeException {
 
     public BizException(String message) {
         super(message);
-        this.code = HttpStatus.INTERNAL_SERVER_ERROR.value();
+        this.code = 500;
     }
 
     public BizException(CharSequence format, Object... args) {
@@ -38,7 +37,7 @@ public class BizException extends RuntimeException {
 
     public BizException(String message, Throwable cause) {
         super(message, cause);
-        this.code = HttpStatus.INTERNAL_SERVER_ERROR.value();
+        this.code = 500;
     }
 
     public BizException(int code, String message, Throwable cause) {
@@ -53,7 +52,7 @@ public class BizException extends RuntimeException {
 
     public BizException(Throwable cause) {
         super(cause);
-        this.code = HttpStatus.INTERNAL_SERVER_ERROR.value();
+        this.code = 500;
     }
 
 

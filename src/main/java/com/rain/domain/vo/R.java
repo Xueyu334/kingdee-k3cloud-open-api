@@ -2,7 +2,6 @@ package com.rain.domain.vo;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.http.HttpStatus;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -59,7 +58,7 @@ public class R<T> implements Serializable {
      */
     public static <T> R<T> ok(T data) {
         R<T> success = new R<>();
-        success.setCode(HttpStatus.OK.value());
+        success.setCode(200);
         success.setMessage("success");
         success.setData(data);
         return success;
@@ -75,7 +74,7 @@ public class R<T> implements Serializable {
      */
     public static <T> R<T> ok(String message, T data) {
         R<T> success = new R<>();
-        success.setCode(HttpStatus.OK.value());
+        success.setCode(200);
         success.setMessage(message);
         success.setData(data);
         return success;
@@ -90,7 +89,7 @@ public class R<T> implements Serializable {
      */
     public static <T> R<T> success(String message) {
         R<T> success = new R<>();
-        success.setCode(HttpStatus.OK.value());
+        success.setCode(200);
         success.setMessage(message);
         return success;
     }
@@ -104,7 +103,7 @@ public class R<T> implements Serializable {
      */
     public static <T> R<T> success() {
         R<T> success = new R<>();
-        success.setCode(HttpStatus.OK.value());
+        success.setCode(200);
         success.setMessage("操作成功");
         return success;
     }
@@ -134,22 +133,7 @@ public class R<T> implements Serializable {
      */
     public static <T> R<T> error(String message) {
         R<T> error = new R<>();
-        error.setCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
-        error.setMessage(message);
-        return error;
-    }
-
-    /**
-     * 错误
-     *
-     * @param httpStatus spring http status 枚举
-     * @param message    消息
-     * @param <T>        数据类型
-     * @return 错误的R包装
-     */
-    public static <T> R<T> error(HttpStatus httpStatus, String message) {
-        R<T> error = new R<>();
-        error.setCode(httpStatus.value());
+        error.setCode(500);
         error.setMessage(message);
         return error;
     }
