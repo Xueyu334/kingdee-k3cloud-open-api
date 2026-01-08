@@ -17,6 +17,11 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+/**
+ * 云星空 Http 请求测试
+ *
+ * @author xueyu
+ */
 @Slf4j
 @SpringBootTest
 public class K3CloudHttpTest {

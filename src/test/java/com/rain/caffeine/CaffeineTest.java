@@ -1,4 +1,4 @@
-package com.rain;
+package com.rain.caffeine;
 
 import cn.hutool.core.thread.ThreadUtil;
 import com.github.benmanes.caffeine.cache.Cache;

@@ -1,4 +1,4 @@
-package com.rain;
+package com.rain.eclipse.coll;
 
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.collections.api.factory.Lists;
