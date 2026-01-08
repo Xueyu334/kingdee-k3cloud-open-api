@@ -12,13 +12,18 @@ import com.kingdee.bos.webapi.domain.dto.response.result.LoginResult;
 import com.kingdee.bos.webapi.domain.dto.response.result.SaveResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.util.Timeout;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -112,7 +117,29 @@ public class WebApiHttpHelper implements AutoCloseable {
      * 检查当前是否已登录并获取到有效的 kdservice-sessionid，然后将其添加到请求头中。
      */
     private void initHttpClient() {
+        // 配置连接层参数（TCP 连接建立超时）
+        ConnectionConfig connectionConfig = ConnectionConfig.custom()
+                .setConnectTimeout(Timeout.ofSeconds(webApiProperties.getConnectTimeout()))
+                .build();
+        // 配置请求层参数（获取连接、等待响应超时）
+        RequestConfig requestConfig = RequestConfig.custom()
+                // 从连接池获取连接的等待时间
+                .setConnectionRequestTimeout(Timeout.ofSeconds(webApiProperties.getRequestTimeout()))
+                // 等待服务端响应的超时时间
+                .setResponseTimeout(Timeout.ofSeconds(webApiProperties.getStockTimeout()))
+                .build();
+        // 构建连接管理器，并应用连接配置
+        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                // 设置默认连接配置（包含 connectTimeout）
+                .setDefaultConnectionConfig(connectionConfig)
+                .build();
+        // 构建 HttpClient
         this.httpClient = HttpClients.custom()
+                // 设置连接管理器
+                .setConnectionManager(connectionManager)
+                // 设置默认请求配置
+                .setDefaultRequestConfig(requestConfig)
+                // 添加请求拦截器，在每次请求前注入 SessionId
                 .addRequestInterceptorLast((request, entity, context) -> {
                     if (loginResult != null && loginResult.isLoginSuccess() && loginResult.getKdsvcSessionId() != null) {
                         request.setHeader("kdservice-sessionid", loginResult.getKdsvcSessionId());
