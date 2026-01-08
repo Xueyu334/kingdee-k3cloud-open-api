@@ -200,28 +200,37 @@ public class WebApiHttpHelper implements AutoCloseable {
      * @throws WebApiInvokeException 如果生成签名失败（例如，不支持 SHA-256 算法）。
      */
     private String generateSign(String acctId, String userName, String appId, String appSecret, long timestamp) {
+        // 参数非空校验，防止出现隐式 NPE 或不确定签名结果
+        if (acctId == null || userName == null || appId == null || appSecret == null) {
+            throw new IllegalArgumentException("生成签名的参数不能为空");
+        }
+        // 将参数转换为字符串数组并排序，保证顺序一致性
+        String[] arr = new String[]{
+                acctId,
+                userName,
+                appId,
+                appSecret,
+                String.valueOf(timestamp)
+        };
+        Arrays.sort(arr);
         try {
-            // 将参数放入数组并排序
-            String[] arr = new String[]{acctId, userName, appId, appSecret, String.valueOf(timestamp)};
-            Arrays.sort(arr);
-            // SHA-256 加密
             MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
             for (String str : arr) {
                 sha256.update(str.getBytes(StandardCharsets.UTF_8));
             }
             byte[] hashBytes = sha256.digest();
             // 转换为十六进制字符串
-            StringBuilder hashString = new StringBuilder();
+            StringBuilder hex = new StringBuilder(hashBytes.length * 2);
             for (byte b : hashBytes) {
-                String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1) {
-                    hashString.append('0');
+                String s = Integer.toHexString(0xff & b);
+                if (s.length() == 1) {
+                    hex.append('0');
                 }
-                hashString.append(hex);
+                hex.append(s);
             }
-            return hashString.toString();
+            return hex.toString();
         } catch (NoSuchAlgorithmException e) {
-            throw new WebApiInvokeException("生成签名失败", e);
+            throw new WebApiInvokeException("生成签名失败：不支持 SHA-256 算法", e);
         }
     }
 
