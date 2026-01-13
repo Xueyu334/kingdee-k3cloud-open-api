@@ -431,48 +431,22 @@ public class WebApiHttpHelper implements AutoCloseable {
      */
     private boolean isSessionStillValid() {
         try {
-            String heartbeat = "{\"FormId\":\"BD_Currency\",\"FieldKeys\":\"FCODE\",\"FilterString\":\"1=2\",\"TopRowCount\":\"0\",\"StartRow\":\"0\",\"Limit\":\"0\"}";
-            Object[] parameters = new Object[]{heartbeat};
-            String resp = executeRaw(ApiConsts.EXECUTE_BILL_QUERY, parameters);
-            if (resp == null || resp.isBlank()) {
-                return false;
-            }
-            return isSessionStillValid(resp);
-        } catch (Exception e) {
-            log.error("Session 校验异常，视为无效，将触发重登", e);
-            return false;
-        }
-    }
-
-    /**
-     * 检查给定的API响应字符串是否表示当前会话仍然有效。
-     * 该方法通过解析响应中的MsgCode字段来判断会话状态。
-     * 如果MsgCode为1，表示未登录或会话已失效；否则认为会话仍然有效。
-     * 若响应为空、空白或解析过程中发生异常，则返回false。
-     *
-     * @param resp 金蝶K3Cloud Web API的响应字符串，通常为JSON格式。
-     * @return 如果会话仍然有效则返回true，否则返回false。
-     */
-    private boolean isSessionStillValid(String resp) {
-        if (resp == null || resp.isBlank()) {
-            return false;
-        }
-        try {
+            String heartbeat = "{\"FormId\":\"BD_Currency\",\"FieldKeys\":\"FCODE\",\"OrderString\":\"\",\"FilterString\":\" FNUMBER='PRE001' \",\"TopRowCount\":\"0\",\"StartRow\":\"0\",\"Limit\":\"0\"}";
+            String resp = executeRaw(ApiConsts.EXECUTE_BILL_QUERY, new Object[]{heartbeat});
             Object val = JSONPath.eval(resp, "$[0][0].Result.ResponseStatus.MsgCode");
             Integer msgCode = null;
-            if (val instanceof Number) {
-                msgCode = ((Number) val).intValue();
-            } else if (val instanceof String) {
-                msgCode = Integer.valueOf((String) val);
+            if (val instanceof Number number) {
+                msgCode = number.intValue();
+            } else if (val instanceof String string) {
+                msgCode = Integer.valueOf(string);
             }
             // MsgCode == 1 => 未登录 / 会话失效
             return msgCode == null || msgCode != 1;
         } catch (Exception e) {
-            log.error("校验认证出现异常:", e);
-            return false;
+            log.error("Session 校验异常，视为无效，将触发重登", e);
+            throw new WebApiInvokeException("Session 校验异常，视为无效，将触发重登", e);
         }
     }
-
 
     /**
      * 金蝶K3Cloud Web API 常量。
