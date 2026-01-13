@@ -62,8 +62,10 @@ public class K3CloudHttpTest {
     @Test
     void testExecuteBillQuery() {
         WebApiHttpHelper webApiHttpHelper = WebApiHttpHelper.of(webApiProperties);
-        String data = "{\"FormId\":\"BD_Currency\",\"FieldKeys\":\"FCODE\",\"OrderString\":\"\",\"FilterString\":\" FNUMBER='PRE001' \",\"TopRowCount\":\"0\",\"StartRow\":\"0\",\"Limit\":\"0\"}";
-        List<List<Object>> lists = webApiHttpHelper.executeBillQuery(data);
-        log.info("单据查询结果: {}", JSON.toJSONString(lists));
+        for (var i = 0; i < 10; i++) {
+            String data = "{\"FormId\":\"BD_Currency\",\"FieldKeys\":\"FCODE\",\"OrderString\":\"\",\"FilterString\":\" FNUMBER='PRE001' \",\"TopRowCount\":\"0\",\"StartRow\":\"0\",\"Limit\":\"0\"}";
+            List<List<Object>> lists = webApiHttpHelper.executeBillQuery(data);
+            log.info("单据查询结果: {}", JSON.toJSONString(lists));
+        }
     }
 }
