@@ -444,7 +444,7 @@ public class WebApiHttpHelper implements AutoCloseable {
             return msgCode == null || msgCode != 1;
         } catch (Exception e) {
             log.error("Session 校验异常，视为无效，将触发重登", e);
-            throw new WebApiInvokeException("Session 校验异常，视为无效，将触发重登", e);
+            return false;
         }
     }
 
