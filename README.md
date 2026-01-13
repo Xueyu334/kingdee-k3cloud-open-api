@@ -1,202 +1,268 @@
-# kingdee-k3cloud-open-api
 
-## 介绍
 
-封装金蝶云星空的 WebApi 接口，提供更简洁易用的 API 调用方式。
+# 金蝶云星空 WebAPI 开放平台 Java SDK
 
-## 技术栈
+## 📖 项目简介
 
-- **Spring Boot**: 3.3.4
-- **JDK**: 17
-- **Kingdee WebApi SDK**: 8.0.6
-- **构建工具**: Maven
+本项目是对金蝶云星空（Kingdee K3 Cloud）WebAPI 接口的高层封装，旨在为 Java 开发者提供更简洁、更易用的 API 调用方式。通过本 SDK，开发者可以快速集成金蝶云星空的各种业务能力，无需关注底层 HTTP 通信细节。
 
-## 主要依赖
+## ✨ 核心特性
 
-| 依赖 | 版本 | 说明 |
-|------|------|------|
-| Spring Boot | 3.3.4 | 核心框架 |
-| FastJson2 | 2.0.52 | JSON 处理 |
-| Hutool | 5.8.29 | Java 工具库 |
-| Guava | 33.2.1-jre | Google 工具库 |
-| Caffeine | 3.1.8 | 高性能缓存 |
-| Eclipse Collections | 12.0.0.M3 | 高性能集合框架 |
-| HttpClient5 | 5.3.1 | HTTP 客户端 |
+| 特性 | 说明 |
+|------|------|
+| **接口封装** | 完整封装保存、查询、提交、审核、作废等核心业务接口 |
+| **异常处理** | 统一的异常处理机制，清晰的错误信息反馈 |
+| **日志记录** | 自动记录请求响应日志，便于问题排查 |
+| **多环境支持** | 支持开发、测试、生产等多环境配置切换 |
+| **高性能缓存** | 集成 Caffeine 缓存框架，提升访问效率 |
+| **工具类库** | 提供丰富的工具类，简化开发工作 |
 
-## 功能特性
+## 🛠 技术栈
 
-- ✅ 封装金蝶云星空 WebApi 接口调用
-- ✅ 支持统一的异常处理
-- ✅ 支持请求响应日志记录
-- ✅ 支持多环境配置（dev/test/prod）
-- ✅ 集成高性能缓存
-- ✅ 提供便捷的工具类
+- **核心框架**: Spring Boot 3.3.4
+- **JDK 版本**: 17
+- **构建工具**: Maven 3.6+
+- **HTTP 客户端**: Apache HttpClient 5.3.1
+- **JSON 处理**: FastJson2 2.0.52
+- **工具库**: Hutool 5.8.29、Guava 33.2.1-jre
+- **缓存**: Caffeine 3.1.8
+- **集合框架**: Eclipse Collections 12.0.0.M3
 
-## 项目结构
+## 📦 项目结构
 
 ```
 kingdee-k3cloud-open-api
-├── src/main/java/com/kingdee/bos/webapi/    # 金蝶 WebApi 封装
-│   ├── common/                               # 公共工具类
+├── src/main/java/com/kingdee/bos/webapi/    # 金蝶 WebAPI 封装模块
+│   ├── common/                               # 公共组件
+│   │   ├── convert/                          # 响应转换器
+│   │   ├── exception/                        # 异常定义
+│   │   └── utils/                            # 工具类
 │   ├── config/                               # 配置类
 │   └── domain/                               # 领域对象
-├── src/main/java/com/rain/                   # 业务代码
+│       ├── dto/request/                      # 请求对象
+│       ├── dto/response/                     # 响应对象
+│       └── bo/                               # 业务对象
+├── src/main/java/com/rain/                   # 业务应用模块
 │   ├── common/                               # 通用组件
+│   │   ├── exception/                        # 业务异常
+│   │   └── utils/                            # 工具类
 │   ├── config/                               # 配置类
-│   └── domain/                               # 领域对象
-├── src/main/resources/                       # 资源文件
-│   ├── application.yml                       # 主配置文件
-│   ├── application-dev.yml                   # 开发环境配置
-│   ├── application-test.yml                  # 测试环境配置
-│   ├── application-prod.yml                  # 生产环境配置
-│   └── logback-spring.xml                    # 日志配置
+│   ├── domain/                               # 领域对象
+│   └── event/                                # 事件监听
+└── src/main/resources/                       # 资源配置文件
+    ├── application.yml                       # 主配置
+    ├── application-dev.yml                   # 开发环境
+    ├── application-test.yml                  # 测试环境
+    └── application-prod.yml                  # 生产环境
 ```
 
-## 快速开始
+## 🚀 快速开始
 
-### 1. 环境要求
+### 环境要求
 
-- JDK 17+
-- Maven 3.6+
+- JDK 17 或更高版本
+- Maven 3.6 或更高版本
 
-### 2. 配置文件
+### Maven 依赖
 
-修改 `src/main/resources/application-dev.yml`、`application-test.yml` 或 `application-prod.yml` 中金蝶云星空相关的配置项。
-请将以下占位符替换为您的实际凭据和服务器信息：
+```xml
+<dependency>
+    <groupId>com.kingdee.bos</groupId>
+    <artifactId>kingdee-k3cloud-open-api</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
 
+### 配置文件
+
+在 `application.yml` 或对应环境的配置文件中添加以下配置：
 
 ```yaml
 kingdee:
   k3cloud:
     web-api:
-      server-url: http://your-k3cloud-server/k3cloud/  # 金蝶云星空 WebApi 服务器地址
-      acct-id: your-acct-id                      # 账套ID
-      user-name: your-user-name                  # 用户名
-      app-id: your-app-id                        # 应用ID (App ID)
-      app-sec: your-app-sec                      # 应用密钥 (App Secret)
-      lc-id: 2052                                # 语言设置，例如 2052 代表简体中文
-      org-num: 100                               # 组织机构ID
-      connect-timeout: 360                       # 连接超时时间（秒）
-      request-timeout: 360                       # 请求超时时间（秒）
-      stock-timeout: 180                         # 套接字超时时间（秒）
-      print-execute-url: on                      # 是否打印执行的URL
-      lc-id: 2052
-      org-num: 100
-      connect-timeout: 360
-      request-timeout: 360
-      stock-timeout: 180
-      print-execute-url: on
+      server-url: http://your-k3cloud-server/k3cloud/  # 金蝶服务器地址
+      acct-id: your-acct-id                            # 账套ID
+      user-name: your-username                         # 用户名
+      app-id: your-app-id                              # 应用ID
+      app-sec: your-app-secret                         # 应用密钥
+      lc-id: 2052                                      # 语言ID（2052=简体中文）
+      org-num: 100                                     # 组织编号
+      connect-timeout: 360                             # 连接超时（秒）
+      request-timeout: 360                             # 请求超时（秒）
+      stock-timeout: 180                               # 套接字超时（秒）
+      is-print-execute-url: true                       # 是否打印执行URL
 ```
 
-### 3. 运行项目
+### 基础使用
 
-```bash
-# 开发环境
-mvn spring-boot:run -P dev
-
-# 测试环境
-mvn spring-boot:run -P test
-
-# 生产环境
-mvn spring-boot:run -P prod
-```
-
-### 4. 打包部署
-
-```bash
-# 打包开发环境
-mvn clean package -P dev
-
-# 打包测试环境
-mvn clean package -P test
-
-# 打包生产环境
-mvn clean package -P prod
-```
-
-## 使用示例
-
-### WebApi 调用示例
+#### 1. 注入依赖
 
 ```java
 @Autowired
 private WebApiHelper webApiHelper;
 
-// 查询数据
-public void queryData() {
-    ViewRequest request = new ViewRequest();
-    request.setFormId("BD_Material");
-    // ... 设置其他参数
-    
-    WebApiResp<ViewResult> response = webApiHelper.viewResult(request);
-    if (response.getResult().getResponseStatus().isIsSuccess()) {
-        // 处理成功结果
-        ViewResult result = response.getResult();
-    }
-}
-
-// 保存数据
-public void saveData() {
-    SaveRequest request = new SaveRequest();
-    request.setFormId("BD_Material");
-    // ... 设置数据
-    
-    WebApiResp<SaveResult> response = webApiHelper.saveResult(request);
-    if (response.getResult().getResponseStatus().isIsSuccess()) {
-        // 处理成功结果
-    }
-}
-```
-
-### 通过 WebApiHelper 登录示例
-
-```java
 @Autowired
 private WebApiHttpHelper webApiHttpHelper;
+```
 
-public void loginExample() {
-    // 调用登录方法
-    LoginResult loginResult = webApiHttpHelper.loginBySign();
+#### 2. 登录认证
 
-    if (loginResult != null && loginResult.isLoginSuccess()) {
-        System.out.println("登录成功，SessionId: " + loginResult.getKdsvcSessionId());
-    } else {
-        System.out.println("登录失败: " + loginResult.getMessage());
+```java
+// 使用签名方式登录
+LoginResult loginResult = webApiHttpHelper.loginBySign();
+
+if (loginResult != null && loginResult.isLoginSuccess()) {
+    System.out.println("登录成功，SessionId: " + loginResult.getKdsvcSessionId());
+} else {
+    System.out.println("登录失败: " + loginResult.getMessage());
+}
+```
+
+#### 3. 查询数据
+
+```java
+// 视图查询
+ViewRequest request = new ViewRequest();
+request.setFormId("BD_Material");
+request.setFieldKeys("FNumber,FName");
+
+WebApiResp<ViewResult> response = webApiHelper.viewResult(request);
+
+if (response.isSuccessfully()) {
+    ViewResult result = response.getResult();
+    // 处理查询结果
+}
+```
+
+#### 4. 保存数据
+
+```java
+// 保存单据
+SaveRequest request = new SaveRequest();
+request.setFormId("BD_Material");
+request.setModel(model);
+
+WebApiResp<SaveResult> response = webApiHelper.saveResult(request);
+
+if (response.isSuccessfully()) {
+    SaveResult result = response.getResult();
+    System.out.println("保存成功，ID: " + result.getId());
+}
+```
+
+#### 5. 批量操作
+
+```java
+// 批量保存
+WebApiResp<BatchSaveResult> response = webApiHelper.batchSaveResult(formId, jsonData);
+
+// 执行复杂查询
+List<List<Object>> result = webApiHelper.executeBillQuery(jsonData);
+```
+
+## 📋 API 清单
+
+### 核心操作接口
+
+| 方法 | 说明 |
+|------|------|
+| `save/saveResult` | 保存数据 |
+| `view/viewResult` | 视图查询 |
+| `submit/submitResult` | 提交单据 |
+| `audit/auditResult` | 审核单据 |
+| `unAudit/unAuditResult` | 反审核 |
+| `delete/deleteResult` | 删除数据 |
+| `draft/draftResult` | 暂存 |
+| `push/pushResult` | 推式生成 |
+| `cancel/cancelResult` | 撤销 |
+| `billClose/billCloseResult` | 结案 |
+| `billUnClose/billUnCloseResult` | 反结案 |
+| `cancelAssign/cancelAssignResult` | 取消分配 |
+| `batchSave/batchSaveResult` | 批量保存 |
+| `executeBillQuery` | 执行单据查询 |
+| `execute` | 执行自定义服务 |
+| `getReportData` | 获取报表数据 |
+
+### 附件操作接口
+
+| 方法 | 说明 |
+|------|------|
+| `attachmentUpload/attachmentUploadResult` | 上传附件 |
+| `attachmentDownLoad/attachmentDownLoadResult` | 下载附件 |
+| `attachmentSplitUpload` | 分片上传 |
+| `attachmentSplitDownload` | 分片下载 |
+
+## ⚙️ 配置说明
+
+### 超时配置
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| `connect-timeout` | 360秒 | 连接超时时间 |
+| `request-timeout` | 360秒 | 请求超时时间 |
+| `stock-timeout` | 180秒 | 套接字读取超时时间 |
+
+### 缓存配置
+
+项目默认集成 Caffeine 缓存，可通过配置文件进行调整：
+
+```yaml
+spring:
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=600s
+```
+
+## 🧪 测试示例
+
+项目提供了完整的测试用例，位于 `src/test/java/com/rain/` 目录：
+
+```java
+@SpringBootTest
+public class K3CloudHttpTest {
+    
+    @Autowired
+    private WebApiProperties webApiProperties;
+    
+    @Test
+    void testLoginBySign() {
+        // 测试登录
+    }
+    
+    @Test
+    void testSave() {
+        // 测试保存操作
+    }
+    
+    @Test
+    void testExecuteBillQuery() {
+        // 测试复杂查询
     }
 }
 ```
 
-## 配置说明
-
-### 超时时间配置
-
-- `connect-timeout`: 连接超时时间（秒），默认 360
-- `request-timeout`: 请求超时时间（秒），默认 360
-- `stock-timeout`: 套接字超时时间（秒），默认 180
-
-### 日志配置
-
-可在 `logback-spring.xml` 中配置日志级别和输出格式。
-
-## 注意事项
-
-1. 确保金蝶云星空服务器网络可达
-2. 正确配置 `app-id` 和 `app-sec`
-3. 根据实际业务调整超时时间
-4. 生产环境建议调整日志级别为 `info` 或 `warn`
-
-## 更新日志
+## 📝 更新日志
 
 ### v1.0.0
-- 初始版本发布
-- 封装金蝶云星空 WebApi 基础功能
-- 支持多环境配置
-- 集成常用工具库
+- ✨ 初始版本发布
+- ✨ 封装金蝶云星空 WebAPI 基础功能
+- ✨ 支持多环境配置
+- ✨ 集成常用工具库
 
-## 许可证
+## ⚠️ 注意事项
 
-根据项目 LICENSE 文件确定
+1. 确保金蝶云星空服务器网络可达
+2. 请正确配置 `app-id` 和 `app-sec` 凭证信息
+3. 根据实际业务需求调整超时时间配置
+4. 生产环境建议将日志级别调整为 `info` 或 `warn`
+5. 使用前请确保已开通对应的 API 权限
 
-## 联系方式
+## 📄 许可证
 
-如有问题或建议，请提交 Issue。
+本项目遵循 [LICENSE](LICENSE) 文件中的许可证协议。
+
+## 🤝 贡献指南
+
+如有任何问题或建议，欢迎提交 Issue 或 Pull Request。
