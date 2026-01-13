@@ -118,9 +118,9 @@
         <dependency>
             <groupId>com.kingdee</groupId>
             <artifactId>k3cloud-webapi-sdk</artifactId>
-            <version>8.0.6</version>
+            <version>8.2.0</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/lib/k3cloud-webapi-sdk8.0.6.jar</systemPath>
+            <systemPath>${project.basedir}/lib/k3cloud-webapi-sdk-java11-v8.2.0.jar</systemPath>
         </dependency>
         <!--caffeine  高性能缓存库-->
         <dependency>
