@@ -433,6 +433,11 @@ public class WebApiHttpHelper implements AutoCloseable {
         try {
             String heartbeat = "{\"FormId\":\"BD_Currency\",\"FieldKeys\":\"FCODE\",\"OrderString\":\"\",\"FilterString\":\" FNUMBER='PRE001' \",\"TopRowCount\":\"0\",\"StartRow\":\"0\",\"Limit\":\"0\"}";
             String resp = executeRaw(ApiConsts.EXECUTE_BILL_QUERY, new Object[]{heartbeat});
+            if (resp.contains("[CNY]")) {
+                //情况1：正常业务返回 [["CNY"]] 或类似二维数组，认为 session 有效
+                return true;
+            }
+            // 情况2：尝试解析 MsgCode
             Object val = JSONPath.eval(resp, "$[0][0].Result.ResponseStatus.MsgCode");
             Integer msgCode = null;
             if (val instanceof Number number) {
@@ -441,7 +446,7 @@ public class WebApiHttpHelper implements AutoCloseable {
                 msgCode = Integer.valueOf(string);
             }
             // MsgCode == 1 => 未登录 / 会话失效
-            return msgCode == null || msgCode != 1;
+            return !Objects.equals(msgCode, 1);
         } catch (Exception e) {
             log.error("Session 校验异常，视为无效，将触发重登", e);
             return false;
