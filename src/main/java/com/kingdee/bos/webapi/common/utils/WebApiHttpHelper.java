@@ -15,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.cookie.BasicCookieStore;
+import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
@@ -48,6 +50,14 @@ import java.util.*;
 public class WebApiHttpHelper implements AutoCloseable {
 
     /**
+     * 会话检查的最小时间间隔，单位为毫秒。
+     * 该常量定义了在会话保持活跃状态检查中，两次检查之间的最短等待时间。
+     * 主要用于控制会话心跳检测的频率，以避免过于频繁的检查对系统或服务端造成不必要的负载。
+     * 例如，设置为30000毫秒表示每30秒最多进行一次会话有效性检查。
+     * 该间隔时间应结合具体业务场景和性能要求进行配置，确保在维持会话有效性的同时，不过度消耗资源。
+     */
+    private static final long SESSION_CHECK_INTERVAL_MS = 30_000;
+    /**
      * Kingdee K3Cloud Web API 的配置属性。
      */
     private final WebApiProperties webApiProperties;
@@ -55,6 +65,15 @@ public class WebApiHttpHelper implements AutoCloseable {
      * API 响应的转换器。
      */
     private final ConvertApiResponse convertApiResponse;
+
+    /**
+     * Cookie存储管理器，用于在HTTP客户端中持久化和管理会话Cookie。
+     * 该实例基于Apache HttpClient的BasicCookieStore实现，负责存储由服务器返回的Cookie信息，
+     * 并在后续的请求中自动附加这些Cookie，以维持会话状态。
+     * 这对于需要保持登录状态或跨请求共享认证信息的Web API交互至关重要。
+     * 该存储管理器确保Cookie在客户端生命周期内得到妥善保存，并在HTTP客户端关闭时随之清理。
+     */
+    private final CookieStore cookieStore = new BasicCookieStore();
     /**
      * 用于存储当前登录结果，包括会话ID等信息。
      * 使用 volatile 关键字确保多线程环境下对 loginResult 的可见性。
@@ -64,6 +83,14 @@ public class WebApiHttpHelper implements AutoCloseable {
      * 持久化的 CloseableHttpClient 实例，用于发送 HTTP 请求并自动管理会话。
      */
     private CloseableHttpClient httpClient;
+    /**
+     * 记录最近一次成功校验会话有效性的时间戳。
+     * 该字段用于控制会话校验的频率，避免过于频繁地发送心跳请求。
+     * 当距离上次成功校验的时间超过预定的间隔（由 SESSION_CHECK_INTERVAL_MS 定义）时，
+     * 才会再次执行会话有效性检查。
+     * 此字段声明为 volatile，以确保在多线程环境下其值变更的可见性。
+     */
+    private volatile long lastSessionCheckTime = 0L;
 
     /**
      * 私有构造函数，用于创建 WebApiHttpHelper 的实例。
@@ -122,10 +149,7 @@ public class WebApiHttpHelper implements AutoCloseable {
      * 此方法通常在类的内部被调用，以确保HttpClient在使用前已被正确配置。
      */
     private void initHttpClient() {
-        // 配置连接层参数（TCP 连接建立超时）
-        ConnectionConfig connectionConfig = ConnectionConfig.custom()
-                .setConnectTimeout(Timeout.ofSeconds(webApiProperties.getConnectTimeout()))
-                .build();
+
         // 配置请求层参数（获取连接、等待响应超时）
         RequestConfig requestConfig = RequestConfig.custom()
                 // 从连接池获取连接的等待时间
@@ -133,15 +157,21 @@ public class WebApiHttpHelper implements AutoCloseable {
                 // 等待服务端响应的超时时间
                 .setResponseTimeout(Timeout.ofSeconds(webApiProperties.getStockTimeout()))
                 .build();
+        // 配置连接层参数（TCP 连接建立超时）
+        ConnectionConfig connectionConfig = ConnectionConfig.custom()
+                .setConnectTimeout(Timeout.ofSeconds(webApiProperties.getConnectTimeout()))
+                .build();
         // 构建连接管理器，并应用连接配置
-        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+        PoolingHttpClientConnectionManager clientConnectionManager = PoolingHttpClientConnectionManagerBuilder.create()
                 // 设置默认连接配置（包含 connectTimeout）
                 .setDefaultConnectionConfig(connectionConfig)
+                .setMaxConnTotal(120)
+                .setMaxConnPerRoute(35)
                 .build();
         // 构建 HttpClient
         this.httpClient = HttpClients.custom()
                 // 设置连接管理器
-                .setConnectionManager(connectionManager)
+                .setConnectionManager(clientConnectionManager)
                 // 设置默认请求配置
                 .setDefaultRequestConfig(requestConfig)
                 // 添加请求拦截器，在每次请求前注入 SessionId
@@ -149,7 +179,10 @@ public class WebApiHttpHelper implements AutoCloseable {
                     if (loginResult != null && loginResult.isLoginSuccess() && loginResult.getKdsvcSessionId() != null) {
                         request.setHeader("kdservice-sessionid", loginResult.getKdsvcSessionId());
                     }
-                }).build();
+                })
+                //添加默认的 cookie 管理器
+                .setDefaultCookieStore(cookieStore)
+                .build();
     }
 
     /**
@@ -321,7 +354,6 @@ public class WebApiHttpHelper implements AutoCloseable {
         }
     }
 
-
     /**
      * 执行金蝶K3Cloud Web API请求。
      * 该方法首先确保当前会话处于有效的登录状态，然后调用原始执行方法发送请求。
@@ -422,14 +454,35 @@ public class WebApiHttpHelper implements AutoCloseable {
 
     /**
      * 检查当前会话是否仍然有效。
-     * 通过发送一个预设的心跳查询请求到金蝶K3Cloud Web API，并根据响应结果判断会话状态。
-     * 该方法用于内部会话管理，确保在需要执行API操作前会话处于有效状态。
-     * 若心跳请求响应为空、空白或解析后指示会话无效，则返回false。
-     * 若在发送请求或处理响应过程中发生任何异常，同样返回false并记录警告日志。
+     * 该方法通过比较当前时间与上次会话检查时间的时间差，来决定是否需要执行内部有效性检查。
+     * 如果时间差小于预设的会话检查间隔，则直接返回true，避免频繁进行内部检查。
+     * 否则，调用内部方法进行实际的有效性验证，并在验证通过时更新上次会话检查时间。
      *
-     * @return 如果当前会话仍然有效则返回true，否则返回false。
+     * @return 如果会话仍然有效则返回true，否则返回false。
      */
     private boolean isSessionStillValid() {
+        long now = System.currentTimeMillis();
+        if (now - lastSessionCheckTime < SESSION_CHECK_INTERVAL_MS) {
+            return true;
+        }
+        boolean validInternal = isSessionStillValidInternal();
+        if (validInternal) {
+            lastSessionCheckTime = now;
+        }
+        return validInternal;
+    }
+
+    /**
+     * 内部方法，用于检查当前会话是否仍然有效。
+     * 通过发送一个预定义的心跳查询请求到金蝶K3Cloud Web API，并根据响应内容判断会话状态。
+     * 心跳查询请求固定查询币别表单中编码为'PRE001'的记录，并期望返回包含"[CNY]"的响应。
+     * 若响应中包含"[CNY]"，则认为会话有效；否则，尝试从响应中解析MsgCode字段。
+     * 当MsgCode等于1时，表示未登录或会话已失效；其他情况则认为会话仍然有效。
+     * 若在检查过程中发生任何异常，将会话视为无效，并记录错误日志。
+     *
+     * @return 如果会话仍然有效则返回true，否则返回false。
+     */
+    private boolean isSessionStillValidInternal() {
         try {
             String heartbeat = "{\"FormId\":\"BD_Currency\",\"FieldKeys\":\"FCODE\",\"OrderString\":\"\",\"FilterString\":\" FNUMBER='PRE001' \",\"TopRowCount\":\"0\",\"StartRow\":\"0\",\"Limit\":\"0\"}";
             String resp = executeRaw(ApiConsts.EXECUTE_BILL_QUERY, new Object[]{heartbeat});
