@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONPath;
 import com.kingdee.bos.webapi.common.convert.ConvertApiResponse;
 import com.kingdee.bos.webapi.common.convert.fastjson.FastJsonConvertApiResponse;
+import com.kingdee.bos.webapi.common.enums.WebApiService;
 import com.kingdee.bos.webapi.common.exception.WebApiInvokeException;
 import com.kingdee.bos.webapi.config.properties.WebApiProperties;
 import com.kingdee.bos.webapi.domain.dto.request.save.SaveRequest;
@@ -282,7 +283,7 @@ public class WebApiHttpHelper implements AutoCloseable {
      * @throws WebApiInvokeException 如果 LoginBySign 调用失败。
      */
     public LoginResult loginBySign() {
-        String url = this.getServiceUrl(ApiConsts.LOGIN_BY_SIGN);
+        String url = this.getServiceUrl(WebApiService.LOGIN_BY_SIGN.getServiceName());
         Map<String, Object> bodyMap = new HashMap<>();
         bodyMap.put("parameters", this.buildLoginBySignParams());
         String jsonBody = JSON.toJSONString(bodyMap);
@@ -417,7 +418,7 @@ public class WebApiHttpHelper implements AutoCloseable {
      */
     public WebApiResp<SaveResult> save(String formId, SaveRequest data) {
         Object[] parameters = new Object[]{formId, JSON.toJSONString(data)};
-        String response = execute(ApiConsts.SAVE, parameters);
+        String response = execute(WebApiService.SAVE.getServiceName(), parameters);
         return convertApiResponse.parseSaveWebApiResponse(response);
     }
 
@@ -435,7 +436,7 @@ public class WebApiHttpHelper implements AutoCloseable {
         // 构造 API 参数
         Object[] parameters = new Object[]{data};
         // 调用接口
-        String response = execute(ApiConsts.EXECUTE_BILL_QUERY, parameters);
+        String response = execute(WebApiService.EXECUTE_BILL_QUERY.getServiceName(), parameters);
         // 返回值校验
         if (response == null || response.isBlank()) {
             return Collections.emptyList();
@@ -481,7 +482,7 @@ public class WebApiHttpHelper implements AutoCloseable {
     private boolean isSessionStillValidInternal() {
         try {
             String heartbeat = "{\"FormId\":\"BD_Currency\",\"FieldKeys\":\"FCODE\",\"OrderString\":\"\",\"FilterString\":\" FNUMBER='PRE001' \",\"TopRowCount\":\"0\",\"StartRow\":\"0\",\"Limit\":\"0\"}";
-            String resp = executeRaw(ApiConsts.EXECUTE_BILL_QUERY, new Object[]{heartbeat});
+            String resp = executeRaw(WebApiService.EXECUTE_BILL_QUERY.getServiceName(), new Object[]{heartbeat});
             if (resp.contains("[CNY]")) {
                 //情况1：正常业务返回 [["CNY"]] 或类似二维数组，认为 session 有效
                 return true;
@@ -502,26 +503,5 @@ public class WebApiHttpHelper implements AutoCloseable {
         }
     }
 
-    /**
-     * 金蝶K3Cloud Web API 常量。
-     */
-    public static final class ApiConsts {
-        /**
-         * 登录服务接口名称
-         */
-        public static final String LOGIN_BY_SIGN = "Kingdee.BOS.WebApi.ServicesStub.AuthService.LoginBySign";
-        /**
-         * 保存服务接口名称
-         */
-        public static final String SAVE = "Kingdee.BOS.WebApi.ServicesStub.DynamicFormService.Save";
-        /**
-         * 单据查询服务接口名称
-         */
-        public static final String EXECUTE_BILL_QUERY = "Kingdee.BOS.WebApi.ServicesStub.DynamicFormService.ExecuteBillQuery";
-
-        private ApiConsts() {
-            // 私有构造函数，防止实例化
-        }
-    }
 
 }

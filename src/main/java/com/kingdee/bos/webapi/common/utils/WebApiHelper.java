@@ -5,6 +5,7 @@ import cn.hutool.core.lang.Assert;
 import com.alibaba.fastjson2.JSON;
 import com.kingdee.bos.webapi.common.convert.ConvertApiResponse;
 import com.kingdee.bos.webapi.common.convert.fastjson.FastJsonConvertApiResponse;
+import com.kingdee.bos.webapi.common.enums.WebApiService;
 import com.kingdee.bos.webapi.common.exception.WebApiInvokeException;
 import com.kingdee.bos.webapi.common.exception.WebApiResponseValidationException;
 import com.kingdee.bos.webapi.domain.dto.request.*;
@@ -27,22 +28,15 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * 云星空api调用-包装类
+ * WebApiHelper 是一个用于简化与金蝶云星空WebApi交互的辅助类。
+ * 该类封装了常见的单据操作，如保存、删除、暂存、查看、提交、审核、反审核、撤销、下推、作废、整单关闭、单据反关闭、批量保存和单据查询等。
+ * 通过提供两种类型的调用方式：直接返回原始字符串响应和返回封装后的WebApiResp对象，以满足不同场景下的需求。
+ * 使用该类可以降低直接调用底层API的复杂度，并提供统一的错误处理和响应数据转换机制。
  *
  * @author xueyu
  */
 @Slf4j
 public class WebApiHelper {
-
-
-    /**
-     * 服务名称常量，用于标识获取报表数据的服务接口。
-     * 该字符串定义了报表数据服务的全限定名，包括命名空间、类名及方法名。
-     * 主要用于在系统中定位和调用与报表数据相关的服务。
-     */
-    private final static String GET_REPORT_DATA_SERVICE_NAME = "Kingdee.BOS.KDS.ServiceFacade.ServicesStub.KDSReportAPIStub.GetReportData,Kingdee.BOS.KDS.ServiceFacade.ServicesStub";
-
-
     /**
      * 客户端
      */
@@ -808,6 +802,6 @@ public class WebApiHelper {
      * @return 响应结果
      */
     public String getReportData(String reqJson) {
-        return execute(GET_REPORT_DATA_SERVICE_NAME, reqJson);
+        return execute(WebApiService.GET_REPORT_DATA.getServiceName(), reqJson);
     }
 }
