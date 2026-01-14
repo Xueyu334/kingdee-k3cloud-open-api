@@ -52,7 +52,19 @@ public class WebApiConfig {
         int stockTimeout = webApiProperties.getStockTimeout();
         String proxy = webApiProperties.getProxy();
         //设置全局默认的appCfg
-        AppCfg appCfg = CfgUtilExt.buildAppCfg(serverUrl, acctId, userName, appId, appSec, lcId, orgNum, connectTimeout, requestTimeout, stockTimeout, proxy);
+        AppCfg appCfg = CfgUtilExt.builder()
+                .serverUrl(serverUrl)
+                .acctId(acctId)
+                .userName(userName)
+                .appId(appId)
+                .appSecret(appSec)
+                .lcId(lcId)
+                .orgNum(orgNum)
+                .connectTimeout(connectTimeout)
+                .requestTimeout(requestTimeout)
+                .stockTimeout(stockTimeout)
+                .proxy(proxy)
+                .build();
         CfgUtilExt.setAppCfgToCfgUtil(appCfg);
         //设置是否打印执行路径
         boolean printExecuteUrl = webApiProperties.isPrintExecuteUrl();
