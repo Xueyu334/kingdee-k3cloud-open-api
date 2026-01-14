@@ -5,6 +5,7 @@ import com.kingdee.bos.webapi.domain.dto.response.result.Result;
 import com.kingdee.bos.webapi.domain.dto.response.status.Errors;
 import com.kingdee.bos.webapi.domain.dto.response.status.ResponseStatus;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.io.Serial;
@@ -13,11 +14,14 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * WebAPi操作响应校验异常操作
+ * WebApiResponseValidationException 表示在验证 Web API 响应时发生的异常。
+ * 该异常继承自 WebApiInvokeException，专门用于处理 API 响应内容不符合预期或验证失败的情况。
+ * 异常封装了原始的 Web API 响应对象（WebApiResp），便于在异常处理中访问响应详情，例如错误码、错误消息等。
+ * 通过提供多个构造方法，支持基于消息、原因、错误码以及响应对象的不同组合来创建异常实例。
+ * 此类还提供了便捷方法，用于从响应中提取格式化的错误消息，辅助调试和错误报告。
+ * 适用于需要严格验证 API 响应并统一处理验证失败逻辑的场景。
  *
  * @author xueyu
- * @see WebApiResp
- * @see Result
  */
 @Getter
 public class WebApiResponseValidationException extends WebApiInvokeException {
@@ -88,11 +92,19 @@ public class WebApiResponseValidationException extends WebApiInvokeException {
                 .map(errors -> errors.stream()
                         .filter(Objects::nonNull)
                         .map(Errors::getMessage)
+                        .filter(StringUtils::isNotBlank)
                         .collect(Collectors.joining(",", "[", "]")))
                 .orElse("");
     }
 
 
+    /**
+     * 返回此异常的字符串表示形式。
+     * 该表示形式包含异常的关键信息，包括关联的 Web API 响应对象（webApiResp）以及异常的错误码（code）。
+     * 主要用于调试和日志记录，以提供异常状态的清晰描述。
+     *
+     * @return 表示此异常的字符串，包含 webApiResp 和 code 信息
+     */
     @Override
     public String toString() {
         return new ToStringBuilder(this)

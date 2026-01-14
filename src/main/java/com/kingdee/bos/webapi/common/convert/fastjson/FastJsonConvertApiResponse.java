@@ -23,9 +23,8 @@ import java.util.List;
 @Slf4j
 public class FastJsonConvertApiResponse extends ConvertApiResponse {
 
-
     /**
-     * 转换结果为 {@link  WebApiResp < OperatorResult >}
+     * 转换结果为 {@link  WebApiResp<OperatorResult>}
      *
      * @param respStr json结果
      * @return WebApiResp

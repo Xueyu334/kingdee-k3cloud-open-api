@@ -8,7 +8,13 @@ import com.kingdee.bos.webapi.domain.dto.response.result.*;
 import java.util.List;
 
 /**
- * 支持运行时 反序列化保存泛型
+ * 提供用于反序列化金蝶云星空WebAPI响应数据的类型引用常量。
+ * 该类包含一系列预定义的TypeReference实例，用于处理不同操作类型的响应。
+ * 每个常量对应一种特定的WebAPI操作响应类型，确保在JSON反序列化过程中能够正确保留泛型信息。
+ * 使用这些常量可以避免在代码中直接创建匿名内部类，提高代码的可读性和维护性。
+ * 主要应用于HTTP客户端或反序列化工具中，用于指定目标反序列化类型。
+ * <p>
+ * 注意：该类仅包含静态常量，不可实例化。
  *
  * @author xueyu
  */
