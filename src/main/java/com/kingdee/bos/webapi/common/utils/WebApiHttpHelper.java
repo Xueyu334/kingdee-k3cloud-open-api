@@ -284,6 +284,9 @@ public class WebApiHttpHelper implements AutoCloseable {
      */
     public LoginResult loginBySign() {
         String url = this.getServiceUrl(WebApiService.LOGIN_BY_SIGN.getServiceName());
+        if (webApiProperties.isPrintExecuteUrl()) {
+            log.info("Kingdee K3Cloud Web API Login URL: {}", url);
+        }
         Map<String, Object> bodyMap = new HashMap<>();
         bodyMap.put("parameters", this.buildLoginBySignParams());
         String jsonBody = JSON.toJSONString(bodyMap);
@@ -377,6 +380,9 @@ public class WebApiHttpHelper implements AutoCloseable {
      */
     private String executeRaw(String serviceName, Object[] parameters) {
         String url = getServiceUrl(serviceName);
+        if (webApiProperties.isPrintExecuteUrl()) {
+            log.info("Kingdee K3Cloud Web API Execute URL: {}", url);
+        }
         Map<String, Object> bodyMap = new HashMap<>();
         bodyMap.put("parameters", parameters);
         String jsonBody = JSON.toJSONString(bodyMap);
@@ -482,6 +488,9 @@ public class WebApiHttpHelper implements AutoCloseable {
     private boolean isSessionStillValidInternal() {
         try {
             String heartbeat = "{\"FormId\":\"BD_Currency\",\"FieldKeys\":\"FCODE\",\"OrderString\":\"\",\"FilterString\":\" FNUMBER='PRE001' \",\"TopRowCount\":\"0\",\"StartRow\":\"0\",\"Limit\":\"0\"}";
+            if (webApiProperties.isPrintExecuteUrl()) {
+                log.info("Kingdee K3Cloud Web API Heartbeat Check");
+            }
             String resp = executeRaw(WebApiService.EXECUTE_BILL_QUERY.getServiceName(), new Object[]{heartbeat});
             if (resp.contains("[CNY]")) {
                 //情况1：正常业务返回 [["CNY"]] 或类似二维数组，认为 session 有效
