@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -67,5 +69,18 @@ public class K3CloudHttpTest {
             List<List<Object>> lists = webApiHttpHelper.executeBillQuery(data);
             log.info("单据查询结果: {}", JSON.toJSONString(lists));
         }
+    }
+
+
+    @Test
+    void parallelTesting() {
+        WebApiHttpHelper webApiHttpHelper = WebApiHttpHelper.of(webApiProperties);
+        List<CompletableFuture<Void>> futures = IntStream.range(0, 10)
+                .mapToObj(i -> CompletableFuture.runAsync(() -> {
+                    String data = "{\"FormId\":\"BD_Currency\",\"FieldKeys\":\"FCODE\",\"OrderString\":\"\",\"FilterString\":\" FNUMBER='PRE001' \",\"TopRowCount\":\"0\",\"StartRow\":\"0\",\"Limit\":\"0\"}";
+                    List<List<Object>> lists = webApiHttpHelper.executeBillQuery(data);
+                    log.info("单据查询结果: {}", JSON.toJSONString(lists));
+                })).toList();
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
     }
 }
