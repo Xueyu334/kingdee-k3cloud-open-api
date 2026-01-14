@@ -321,25 +321,21 @@ public class WebApiHttpHelper implements AutoCloseable {
 
     /**
      * 确保当前会话处于有效的登录状态。
-     * 该方法会检查当前的登录状态和会话有效性，若未登录或会话已失效，则自动触发重新登录流程。
-     * 检查逻辑包括：
-     * 1. 若登录结果对象为 null 或指示登录失败，则标记需要重新登录。
-     * 2. 若登录结果指示登录成功，但通过心跳检测发现会话已失效，则标记需要重新登录。
-     * 当需要重新登录时，会调用登录方法进行重新认证，若重新登录失败，则抛出异常。
-     * 该方法为同步方法，确保在多线程环境下登录状态检查与更新的原子性。
-     * 主要用于在发起API请求前，确保具备有效的会话凭证。
-     *
-     * @throws WebApiInvokeException 当重新登录失败时抛出此异常。
+     * 该方法首先检查当前登录结果是否有效且会话未过期，若满足条件则直接返回。
+     * 若登录状态无效或会话已过期，则进入同步块进行双重检查，避免多线程环境下的重复登录。
+     * 在同步块内，若登录状态仍未满足条件，则尝试调用登录方法进行重新登录。
+     * 若重新登录失败，将抛出 WebApiInvokeException 异常。
+     * 若重新登录成功，则更新登录结果并记录新的会话ID。
+     * 此方法主要用于在执行需要认证的API请求前，自动维护登录会话的有效性。
      */
-    private synchronized void ensureLogin() {
-        boolean needRelogin = false;
-        if (this.loginResult == null || !this.loginResult.isLoginSuccess()) {
-            needRelogin = true;
-        } else if (!isSessionStillValid()) {
-            log.warn("Session 已失效，准备重新登录...");
-            needRelogin = true;
+    private void ensureLogin() {
+        if (loginResult != null && loginResult.isLoginSuccess() && isSessionStillValid()) {
+            return;
         }
-        if (needRelogin) {
+        synchronized (this) {
+            if (loginResult != null && loginResult.isLoginSuccess() && isSessionStillValid()) {
+                return;
+            }
             if (log.isDebugEnabled()) {
                 log.debug("当前未登录或登录已失效，尝试重新登录...");
             }
