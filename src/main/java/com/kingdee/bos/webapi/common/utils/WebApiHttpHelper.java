@@ -119,7 +119,7 @@ public class WebApiHttpHelper implements AutoCloseable {
      * @return 返回一个初始化完成的 WebApiHttpHelper 实例，用于处理 Web API 请求和响应。
      */
     public static WebApiHttpHelper of(final WebApiProperties webApiProperties) {
-        return of(webApiProperties, new FastJsonConvertApiResponse());
+        return of(webApiProperties, FastJsonConvertApiResponse.INSTANCE);
     }
 
     /**

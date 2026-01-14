@@ -69,7 +69,7 @@ public class WebApiHelper {
      */
     public static WebApiHelper of(final K3CloudApi k3CloudApi) {
         Assert.notNull(k3CloudApi, () -> new NullPointerException("云星空WebApi客户端不能为空!"));
-        return of(k3CloudApi, new FastJsonConvertApiResponse());
+        return of(k3CloudApi, FastJsonConvertApiResponse.INSTANCE);
     }
 
     /**

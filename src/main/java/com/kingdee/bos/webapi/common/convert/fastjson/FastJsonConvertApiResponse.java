@@ -24,6 +24,11 @@ import java.util.List;
 public class FastJsonConvertApiResponse extends ConvertApiResponse {
 
     /**
+     * FastJsonConvertApiResponse 的单例实例。
+     */
+    public static final FastJsonConvertApiResponse INSTANCE = new FastJsonConvertApiResponse();
+
+    /**
      * 转换结果为 {@link  WebApiResp<OperatorResult>}
      *
      * @param respStr json结果
