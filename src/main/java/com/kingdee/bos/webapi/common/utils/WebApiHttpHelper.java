@@ -1,6 +1,5 @@
 package com.kingdee.bos.webapi.common.utils;
 
-import cn.hutool.core.lang.Assert;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONPath;
 import com.kingdee.bos.webapi.common.convert.ConvertApiResponse;
@@ -135,8 +134,12 @@ public class WebApiHttpHelper implements AutoCloseable {
      * @return 返回一个 WebApiHttpHelper 实例，用于处理金蝶 K3Cloud Web API 的请求和响应。
      */
     private static WebApiHttpHelper of(WebApiProperties webApiProperties, ConvertApiResponse convertApiResponse) {
-        Assert.notNull(webApiProperties, () -> new NullPointerException("云星空WebApi客户端不能为空!"));
-        Assert.notNull(convertApiResponse, () -> new NullPointerException("响应消息转换插件不能为空!"));
+        if (Objects.isNull(webApiProperties)) {
+            throw new NullPointerException("云星空WebApi客户端不能为空!");
+        }
+        if (Objects.isNull(convertApiResponse)) {
+            throw new NullPointerException("响应消息转换插件不能为空!");
+        }
         return new WebApiHttpHelper(webApiProperties, convertApiResponse);
     }
 
@@ -150,7 +153,6 @@ public class WebApiHttpHelper implements AutoCloseable {
      * 此方法通常在类的内部被调用，以确保HttpClient在使用前已被正确配置。
      */
     private void initHttpClient() {
-
         // 配置请求层参数（获取连接、等待响应超时）
         RequestConfig requestConfig = RequestConfig.custom()
                 // 从连接池获取连接的等待时间

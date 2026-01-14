@@ -79,23 +79,6 @@
             <artifactId>fastjson2-extension</artifactId>
             <version>${fastjson2.version}</version>
         </dependency>
-        <!--hu-tool start -->
-        <dependency>
-            <groupId>cn.hutool</groupId>
-            <artifactId>hutool-core</artifactId>
-            <version>${hutool.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>cn.hutool</groupId>
-            <artifactId>hutool-crypto</artifactId>
-            <version>${hutool.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>cn.hutool</groupId>
-            <artifactId>hutool-http</artifactId>
-            <version>${hutool.version}</version>
-        </dependency>
-        <!--hu-tool end-->
         <!--commons-lang3-->
         <dependency>
             <groupId>org.apache.commons</groupId>

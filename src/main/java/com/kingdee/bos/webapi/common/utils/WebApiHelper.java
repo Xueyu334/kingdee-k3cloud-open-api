@@ -1,7 +1,6 @@
 package com.kingdee.bos.webapi.common.utils;
 
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.lang.Assert;
+
 import com.alibaba.fastjson2.JSON;
 import com.kingdee.bos.webapi.common.convert.ConvertApiResponse;
 import com.kingdee.bos.webapi.common.convert.fastjson.FastJsonConvertApiResponse;
@@ -17,6 +16,7 @@ import com.kingdee.bos.webapi.entity.RepoResult;
 import com.kingdee.bos.webapi.entity.RepoStatus;
 import com.kingdee.bos.webapi.sdk.K3CloudApi;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -68,7 +68,9 @@ public class WebApiHelper {
      * @return 返回一个WebApiHelper实例，该实例包含云星空WebApi客户端和默认的响应转换器
      */
     public static WebApiHelper of(final K3CloudApi k3CloudApi) {
-        Assert.notNull(k3CloudApi, () -> new NullPointerException("云星空WebApi客户端不能为空!"));
+        if (Objects.isNull(k3CloudApi)) {
+            throw new NullPointerException("云星空WebApi客户端不能为空!");
+        }
         return of(k3CloudApi, FastJsonConvertApiResponse.INSTANCE);
     }
 
@@ -80,8 +82,12 @@ public class WebApiHelper {
      * @return 返回一个包含指定云星空WebApi客户端和响应消息转换插件的 WebApiHelper 实例。
      */
     public static WebApiHelper of(final K3CloudApi k3CloudApi, final ConvertApiResponse convertApiResponse) {
-        Assert.notNull(k3CloudApi, () -> new NullPointerException("云星空WebApi客户端不能为空!"));
-        Assert.notNull(convertApiResponse, () -> new NullPointerException("响应消息转换插件不能为空!"));
+        if (Objects.isNull(k3CloudApi)) {
+            throw new NullPointerException("云星空WebApi客户端不能为空!");
+        }
+        if (Objects.isNull(convertApiResponse)) {
+            throw new NullPointerException("响应消息转换插件不能为空!");
+        }
         return new WebApiHelper(k3CloudApi, convertApiResponse);
     }
 
@@ -591,7 +597,7 @@ public class WebApiHelper {
                 return k3CloudApi.execute(serviceName, paramInfo);
             } else {
                 String errorMessage = Optional.ofNullable(responseStatus.getErrors())
-                        .filter(CollectionUtil::isNotEmpty)
+                        .filter(es -> !es.isEmpty())
                         .map(errors -> errors.stream()
                                 .map(RepoError::getMessage)
                                 .collect(Collectors.joining(",", "[", "]")))
@@ -659,8 +665,12 @@ public class WebApiHelper {
      */
     public WebApiResp<AttachmentUploadResult> attachmentSplitUpload(AttachmentUpLoadRequest request,
                                                                     InputStream inputStream, int blockSize) throws IOException {
-        Assert.isTrue(blockSize > 0, () -> new IllegalArgumentException("blockSize must be a value greater than 0"));
-        Assert.notNull(inputStream, () -> new IOException("inputStream can not be null!"));
+        if (blockSize <= 0) {
+            throw new IllegalArgumentException("blockSize must be a value greater than 0");
+        }
+        if (Objects.isNull(inputStream)) {
+            throw new IOException("inputStream can not be null!");
+        }
         byte[] content = new byte[blockSize];
         WebApiResp<AttachmentUploadResult> webApiResp = null;
         try (BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream, blockSize)) {
@@ -746,8 +756,12 @@ public class WebApiHelper {
      * @return 文件
      */
     public File attachmentSplitDownload(String fileId, String dirPath) throws IOException {
-        Assert.notBlank(fileId, () -> new IllegalArgumentException("附件id必填!"));
-        Assert.notBlank(dirPath, () -> new IllegalArgumentException("文件夹路径必填!"));
+        if (StringUtils.isEmpty(dirPath)) {
+            throw new IllegalArgumentException("文件夹路径必填!");
+        }
+        if (StringUtils.isEmpty(fileId)) {
+            throw new IllegalArgumentException("附件id必填!");
+        }
         // 提前判断路径是否存在并创建目录
         Path directories = Paths.get(dirPath);
         if (!Files.exists(directories)) {
