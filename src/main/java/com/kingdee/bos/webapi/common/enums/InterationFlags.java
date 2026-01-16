@@ -1,4 +1,4 @@
-package com.kingdee.bos.webapi.domain.bo;
+package com.kingdee.bos.webapi.common.enums;
 
 /**
  *  交互性标志
