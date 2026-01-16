@@ -2,7 +2,7 @@ package com.kingdee.bos.webapi.common.utils;
 
 
 import com.alibaba.fastjson2.JSON;
-import com.kingdee.bos.webapi.common.convert.ConvertApiResponse;
+import com.kingdee.bos.webapi.common.convert.WebApiResponseConverter;
 import com.kingdee.bos.webapi.common.convert.fastjson.FastJsonConvertApiResponse;
 import com.kingdee.bos.webapi.common.enums.WebApiService;
 import com.kingdee.bos.webapi.common.exception.WebApiInvokeException;
@@ -45,20 +45,20 @@ public class WebApiHelper {
      * 用于存储转换后的API响应数据的私有最终变量。
      * 该变量持有将API原始响应经过处理或格式化后的结果，
      * 确保在程序运行期间不会被修改，从而保证数据的一致性和安全性。
-     * 其具体类型和结构由 ConvertApiResponse 定义，通常包含解析后的内容或状态信息。
+     * 其具体类型和结构由 WebApiResponseConverter 定义，通常包含解析后的内容或状态信息。
      */
-    private final ConvertApiResponse convertApiResponse;
+    private final WebApiResponseConverter webApiResponseConverter;
 
     /**
      * WebApiHelper类的私有构造函数，用于初始化WebApiHelper实例。
-     * 该构造函数通过传入的K3CloudApi和ConvertApiResponse对象来配置当前实例。
+     * 该构造函数通过传入的K3CloudApi和WebApiResponseConverter对象来配置当前实例。
      *
-     * @param k3CloudApi         与K3Cloud进行交互的API接口实现，用于执行具体的Web API调用操作
-     * @param convertApiResponse 负责将API响应数据转换为指定格式的处理类，用于解析和处理返回结果
+     * @param k3CloudApi              与K3Cloud进行交互的API接口实现，用于执行具体的Web API调用操作
+     * @param webApiResponseConverter 负责将API响应数据转换为指定格式的处理类，用于解析和处理返回结果
      */
-    private WebApiHelper(K3CloudApi k3CloudApi, ConvertApiResponse convertApiResponse) {
+    private WebApiHelper(K3CloudApi k3CloudApi, WebApiResponseConverter webApiResponseConverter) {
         this.k3CloudApi = k3CloudApi;
-        this.convertApiResponse = convertApiResponse;
+        this.webApiResponseConverter = webApiResponseConverter;
     }
 
     /**
@@ -81,7 +81,7 @@ public class WebApiHelper {
      * @param convertApiResponse 响应消息转换插件，不能为空。如果为空，则抛出 NullPointerException 异常。
      * @return 返回一个包含指定云星空WebApi客户端和响应消息转换插件的 WebApiHelper 实例。
      */
-    public static WebApiHelper of(final K3CloudApi k3CloudApi, final ConvertApiResponse convertApiResponse) {
+    public static WebApiHelper of(final K3CloudApi k3CloudApi, final WebApiResponseConverter convertApiResponse) {
         if (Objects.isNull(k3CloudApi)) {
             throw new NullPointerException("云星空WebApi客户端不能为空!");
         }
@@ -115,7 +115,7 @@ public class WebApiHelper {
      */
     public WebApiResp<SaveResult> saveResult(String formId, String data) {
         String saveRespStr = save(formId, data);
-        return convertApiResponse.parseSaveWebApiResponse(saveRespStr);
+        return webApiResponseConverter.parseSaveWebApiResponse(saveRespStr);
     }
 
     /**
@@ -152,7 +152,7 @@ public class WebApiHelper {
      */
     public WebApiResp<OperatorResult> deleteResult(String formId, String jsonData) {
         String delete = delete(formId, jsonData);
-        return convertApiResponse.parseOperatorWebApiResponse(delete);
+        return webApiResponseConverter.parseOperatorWebApiResponse(delete);
     }
 
     /**
@@ -179,7 +179,7 @@ public class WebApiHelper {
      */
     public WebApiResp<SaveResult> draftResult(String formId, String jsonData) {
         String draft = draft(formId, jsonData);
-        return convertApiResponse.parseSaveWebApiResponse(draft);
+        return webApiResponseConverter.parseSaveWebApiResponse(draft);
     }
 
     /**
@@ -190,7 +190,7 @@ public class WebApiHelper {
      */
     public WebApiResp<SaveResult> draftResult(SaveRequest saveRequest) {
         String draft = draft(saveRequest.getFormId(), JSON.toJSONString(saveRequest));
-        return convertApiResponse.parseSaveWebApiResponse(draft);
+        return webApiResponseConverter.parseSaveWebApiResponse(draft);
     }
 
     /**
@@ -217,7 +217,7 @@ public class WebApiHelper {
      */
     public WebApiResp<ViewResult> viewResult(String formId, String jsonData) {
         String view = view(formId, jsonData);
-        return convertApiResponse.parseViewWebApiResponse(view);
+        return webApiResponseConverter.parseViewWebApiResponse(view);
     }
 
     /**
@@ -254,7 +254,7 @@ public class WebApiHelper {
      */
     public WebApiResp<OperatorResult> submitResult(String formId, String jsonData) {
         String submit = submit(formId, jsonData);
-        return convertApiResponse.parseOperatorWebApiResponse(submit);
+        return webApiResponseConverter.parseOperatorWebApiResponse(submit);
     }
 
     /**
@@ -291,7 +291,7 @@ public class WebApiHelper {
      */
     public WebApiResp<OperatorResult> auditResult(String formId, String jsonData) {
         String audit = audit(formId, jsonData);
-        return convertApiResponse.parseOperatorWebApiResponse(audit);
+        return webApiResponseConverter.parseOperatorWebApiResponse(audit);
     }
 
     /**
@@ -328,7 +328,7 @@ public class WebApiHelper {
      */
     public WebApiResp<OperatorResult> unAuditResult(String formId, String jsonData) {
         String unAudit = unAudit(formId, jsonData);
-        return convertApiResponse.parseOperatorWebApiResponse(unAudit);
+        return webApiResponseConverter.parseOperatorWebApiResponse(unAudit);
     }
 
     /**
@@ -365,7 +365,7 @@ public class WebApiHelper {
      */
     public WebApiResp<OperatorResult> cancelAssignResult(String formId, String jsonData) {
         String cancelAssign = cancelAssign(formId, jsonData);
-        return convertApiResponse.parseOperatorWebApiResponse(cancelAssign);
+        return webApiResponseConverter.parseOperatorWebApiResponse(cancelAssign);
     }
 
     /**
@@ -402,7 +402,7 @@ public class WebApiHelper {
      */
     public WebApiResp<ConvertResult> pushResult(String formId, String jsonData) {
         String push = push(formId, jsonData);
-        return convertApiResponse.parseConvertWebApiResponse(push);
+        return webApiResponseConverter.parseConvertWebApiResponse(push);
     }
 
     /**
@@ -439,7 +439,7 @@ public class WebApiHelper {
      */
     public WebApiResp<OperatorResult> cancelResult(String formId, String jsonData) {
         String cancel = cancel(formId, jsonData);
-        return convertApiResponse.parseOperatorWebApiResponse(cancel);
+        return webApiResponseConverter.parseOperatorWebApiResponse(cancel);
     }
 
     /**
@@ -476,7 +476,7 @@ public class WebApiHelper {
      */
     public WebApiResp<OperatorResult> billCloseResult(String formId, String jsonData) {
         String billClose = billClose(formId, jsonData);
-        return convertApiResponse.parseOperatorWebApiResponse(billClose);
+        return webApiResponseConverter.parseOperatorWebApiResponse(billClose);
     }
 
     /**
@@ -513,7 +513,7 @@ public class WebApiHelper {
      */
     public WebApiResp<OperatorResult> billUnCloseResult(String formId, String jsonData) {
         String billUnClose = billUnClose(formId, jsonData);
-        return convertApiResponse.parseOperatorWebApiResponse(billUnClose);
+        return webApiResponseConverter.parseOperatorWebApiResponse(billUnClose);
     }
 
     /**
@@ -550,7 +550,7 @@ public class WebApiHelper {
      */
     public WebApiResp<BatchSaveResult> batchSaveResult(String formId, String jsonData) {
         String batchSave = batchSave(formId, jsonData);
-        return convertApiResponse.parseBatchSaveWebApiResponse(batchSave);
+        return webApiResponseConverter.parseBatchSaveWebApiResponse(batchSave);
     }
 
     /**
@@ -651,7 +651,7 @@ public class WebApiHelper {
      */
     public WebApiResp<AttachmentUploadResult> attachmentUploadResult(AttachmentUpLoadRequest attachmentUpLoadRequest) {
         String respStr = attachmentUpload(attachmentUpLoadRequest);
-        return convertApiResponse.parseAttachmentUploadWebApiResponse(respStr);
+        return webApiResponseConverter.parseAttachmentUploadWebApiResponse(respStr);
     }
 
     /**
@@ -745,7 +745,7 @@ public class WebApiHelper {
      */
     public WebApiResp<AttachmentDownLoadResult> attachmentDownLoadResult(AttachmentDownLoadRequest request) {
         String resp = attachmentDownLoad(request);
-        return convertApiResponse.parseAttachmentDownLoadWebApiResponse(resp);
+        return webApiResponseConverter.parseAttachmentDownLoadWebApiResponse(resp);
     }
 
     /**

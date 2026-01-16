@@ -7,7 +7,7 @@ import java.util.List;
 
 /**
  * 抽象类，用于将API响应字符串解析为特定类型的 {@link WebApiResp} 对象。
- * 提供了一系列抽象方法，用于处理不同业务场景下的API响应解析。
+ * 提供了一系列抽象方法,用于处理不同业务场景下的API响应解析。
  * 每个方法接收一个JSON格式的响应字符串，并将其转换为对应的泛型 {@link WebApiResp} 实例。
  * <p>
  * 该类的设计目的是为不同的API响应类型提供统一的解析接口，具体的解析逻辑由子类实现。
@@ -15,7 +15,7 @@ import java.util.List;
  *
  * @author xueyu
  */
-public abstract class ConvertApiResponse {
+public abstract class WebApiResponseConverter {
 
 
     /**

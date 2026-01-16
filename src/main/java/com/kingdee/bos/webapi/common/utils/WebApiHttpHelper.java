@@ -2,7 +2,7 @@ package com.kingdee.bos.webapi.common.utils;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONPath;
-import com.kingdee.bos.webapi.common.convert.ConvertApiResponse;
+import com.kingdee.bos.webapi.common.convert.WebApiResponseConverter;
 import com.kingdee.bos.webapi.common.convert.fastjson.FastJsonConvertApiResponse;
 import com.kingdee.bos.webapi.common.enums.WebApiService;
 import com.kingdee.bos.webapi.common.exception.WebApiInvokeException;
@@ -36,10 +36,10 @@ import java.util.*;
 
 /**
  * WebApiHttpHelper 是一个用于处理金蝶 K3Cloud Web API 的辅助类。
- * 该类通过封装 WebApiProperties 和 ConvertApiResponse，提供对 Web API 请求的配置和响应解析支持。
+ * 该类通过封装 WebApiProperties 和 WebApiResponseConverter，提供对 Web API 请求的配置和响应解析支持。
  * <p>
  * WebApiProperties 包含了与 Web API 交互所需的配置信息，例如服务地址、账套ID、用户凭据等。
- * ConvertApiResponse 提供了将 API 响应字符串解析为特定业务对象的功能，支持多种业务场景的响应解析。
+ * WebApiResponseConverter 提供了将 API 响应字符串解析为特定业务对象的功能，支持多种业务场景的响应解析。
  * <p>
  * 该类采用私有构造函数设计，确保实例化时必须提供必要的依赖项。
  * 通过这种方式，保证了类的使用安全性和依赖注入的灵活性。
@@ -64,7 +64,7 @@ public class WebApiHttpHelper implements AutoCloseable {
     /**
      * API 响应的转换器。
      */
-    private final ConvertApiResponse convertApiResponse;
+    private final WebApiResponseConverter webApiResponseConverter;
 
     /**
      * Cookie存储管理器，用于在HTTP客户端中持久化和管理会话Cookie。
@@ -94,17 +94,17 @@ public class WebApiHttpHelper implements AutoCloseable {
 
     /**
      * 私有构造函数，用于创建 WebApiHttpHelper 的实例。
-     * 通过该构造函数，将 WebApiProperties 和 ConvertApiResponse 注入到当前类中，
+     * 通过该构造函数，将 WebApiProperties 和 WebApiResponseConverter 注入到当前类中，
      * 确保类的依赖项在实例化时被正确初始化。
      *
      * @param webApiProperties   包含与金蝶 K3Cloud Web API 交互所需的配置信息，例如服务地址、账套ID、用户凭据等。
      *                           该参数不能为空，且其内容通常通过配置文件或外部化方式进行管理。
-     * @param convertApiResponse 用于解析 API 响应字符串的转换器实例。
+     * @param webApiResponseConverter 用于解析 API 响应字符串的转换器实例。
      *                           该参数提供了将 API 响应解析为特定业务对象的能力，支持多种业务场景的响应处理。
      */
-    private WebApiHttpHelper(WebApiProperties webApiProperties, ConvertApiResponse convertApiResponse) {
+    private WebApiHttpHelper(WebApiProperties webApiProperties, WebApiResponseConverter webApiResponseConverter) {
         this.webApiProperties = webApiProperties;
-        this.convertApiResponse = convertApiResponse;
+        this.webApiResponseConverter = webApiResponseConverter;
         initHttpClient();
     }
 
@@ -123,7 +123,7 @@ public class WebApiHttpHelper implements AutoCloseable {
 
     /**
      * 创建一个 WebApiHttpHelper 实例，用于处理金蝶 K3Cloud Web API 的请求和响应。
-     * 该方法通过指定的 WebApiProperties 和 ConvertApiResponse 实例进行初始化，
+     * 该方法通过指定的 WebApiProperties 和 WebApiResponseConverter 实例进行初始化，
      * 确保在与 Web API 交互时能够正确配置和解析响应消息。
      *
      * @param webApiProperties   包含与金蝶 K3Cloud Web API 交互所需的配置信息，例如服务地址、账套ID、用户凭据等。
@@ -133,7 +133,7 @@ public class WebApiHttpHelper implements AutoCloseable {
      *                           该参数不能为空。
      * @return 返回一个 WebApiHttpHelper 实例，用于处理金蝶 K3Cloud Web API 的请求和响应。
      */
-    private static WebApiHttpHelper of(WebApiProperties webApiProperties, ConvertApiResponse convertApiResponse) {
+    private static WebApiHttpHelper of(WebApiProperties webApiProperties, WebApiResponseConverter convertApiResponse) {
         if (Objects.isNull(webApiProperties)) {
             throw new NullPointerException("云星空WebApi客户端不能为空!");
         }
@@ -315,7 +315,7 @@ public class WebApiHttpHelper implements AutoCloseable {
             if (log.isDebugEnabled()) {
                 log.debug("登录响应: {}", response);
             }
-            LoginResult result = convertApiResponse.parseLoginResponse(response);
+            LoginResult result = webApiResponseConverter.parseLoginResponse(response);
             // 更新登录结果
             this.loginResult = result;
             return result;
@@ -427,7 +427,7 @@ public class WebApiHttpHelper implements AutoCloseable {
     public WebApiResp<SaveResult> save(String formId, SaveRequest data) {
         Object[] parameters = new Object[]{formId, JSON.toJSONString(data)};
         String response = execute(WebApiService.SAVE.getServiceName(), parameters);
-        return convertApiResponse.parseSaveWebApiResponse(response);
+        return webApiResponseConverter.parseSaveWebApiResponse(response);
     }
 
     /**
@@ -451,7 +451,7 @@ public class WebApiHttpHelper implements AutoCloseable {
         }
         try {
             // 解析为二维数组 List<List<Object>>
-            return convertApiResponse.parseListListObjectApiResponse(response);
+            return webApiResponseConverter.parseListListObjectApiResponse(response);
         } catch (Exception e) {
             throw new RuntimeException("解析 ExecuteBillQuery 返回结果失败，原始响应：" + response, e);
         }

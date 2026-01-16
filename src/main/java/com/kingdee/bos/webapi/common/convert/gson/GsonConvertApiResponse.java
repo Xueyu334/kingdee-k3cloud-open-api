@@ -2,7 +2,7 @@ package com.kingdee.bos.webapi.common.convert.gson;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.kingdee.bos.webapi.common.convert.ConvertApiResponse;
+import com.kingdee.bos.webapi.common.convert.WebApiResponseConverter;
 import com.kingdee.bos.webapi.domain.dto.response.WebApiResp;
 import com.kingdee.bos.webapi.domain.dto.response.result.*;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
 /**
- * GsonConvertApiResponse 是 ConvertApiResponse 的具体实现类，用于将 JSON 格式的 API 响应字符串解析为特定类型的 {@link WebApiResp} 对象。
+ * GsonConvertApiResponse 是 WebApiResponseConverter 的具体实现类，用于将 JSON 格式的 API 响应字符串解析为特定类型的 {@link WebApiResp} 对象。
  * 该类利用 Gson 提供的解析能力，结合预定义的类型引用（{@link WebApiRespTypeReference}），将响应字符串转换为包含特定业务结果的泛型对象。
  * 每个方法都接收一个 JSON 格式的响应字符串，并返回对应的 {@link WebApiResp} 实例，适用于不同的业务场景。
  * <p>
@@ -22,7 +22,7 @@ import java.util.List;
  * @apiNote
  */
 @Slf4j
-public class GsonConvertApiResponse extends ConvertApiResponse {
+public class GsonConvertApiResponse extends WebApiResponseConverter {
 
     /**
      * GsonConvertApiResponse 的单例实例。
