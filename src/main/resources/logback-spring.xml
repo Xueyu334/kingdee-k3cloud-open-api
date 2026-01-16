@@ -38,7 +38,6 @@
         <!--对记录事件进行格式化-->
         <encoder>
             <pattern>${FILE_LOG_PATTERN}</pattern>
-            <!-- 设置字符集 -->
             <charset>UTF-8</charset>
         </encoder>
         <!-- 日志记录器的滚动策略，按日期，按大小记录 -->
@@ -90,7 +89,7 @@
         <!--日志文件输出格式-->
         <encoder>
             <pattern>${FILE_LOG_PATTERN}</pattern>
-            <charset>UTF-8</charset> <!-- 此处设置字符集 -->
+            <charset>UTF-8</charset>
         </encoder>
         <!-- 日志记录器的滚动策略，按日期，按大小记录 -->
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
@@ -115,7 +114,7 @@
         <!--日志文件输出格式-->
         <encoder>
             <pattern>${FILE_LOG_PATTERN}</pattern>
-            <charset>UTF-8</charset> <!-- 此处设置字符集 -->
+            <charset>UTF-8</charset>
         </encoder>
         <!-- 日志记录器的滚动策略，按日期，按大小记录 -->
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
@@ -139,7 +138,7 @@
         <!--日志文件输出格式-->
         <encoder>
             <pattern>${FILE_LOG_PATTERN}</pattern>
-            <charset>UTF-8</charset> <!-- 此处设置字符集 -->
+            <charset>UTF-8</charset>
         </encoder>
         <!-- 日志记录器的滚动策略，按日期，按大小记录 -->
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
@@ -149,11 +148,6 @@
             <!--日志文件保留天数-->
             <maxHistory>15</maxHistory>
         </rollingPolicy>
-        <!-- 此日志文件记录所有级别的 -->
-        <filter class="ch.qos.logback.classic.filter.LevelFilter">
-            <level>ALL</level>
-            <onMatch>ACCEPT</onMatch>
-        </filter>
     </appender>
     <logger name="ch.qos.logback" level="OFF"/>
 
