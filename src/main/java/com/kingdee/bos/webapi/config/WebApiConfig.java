@@ -2,6 +2,7 @@ package com.kingdee.bos.webapi.config;
 
 import com.kingdee.bos.webapi.common.utils.CfgUtilExt;
 import com.kingdee.bos.webapi.common.utils.WebApiHelper;
+import com.kingdee.bos.webapi.common.utils.WebApiHttpHelper;
 import com.kingdee.bos.webapi.config.properties.WebApiProperties;
 import com.kingdee.bos.webapi.entity.AppCfg;
 import com.kingdee.bos.webapi.sdk.K3CloudApi;
@@ -81,10 +82,24 @@ public class WebApiConfig {
     }
 
     /**
-     * 云星空api调用-包装
+     * 创建并配置金蝶云星空WebApi的HTTP请求辅助工具Bean。
+     * 该方法基于提供的配置参数构建WebApiHttpHelper实例，用于处理与金蝶云星空WebApi的HTTP通信。
+     * 该Bean在容器销毁时会自动调用close方法以释放相关资源。
      *
-     * @param k3CloudApi 云星空 OpenApi 客户端
-     * @return {@link  WebApiHelper}
+     * @param webApiProperties 金蝶云星空的WebApi配置属性，包含服务器URL、账套ID、应用认证信息等必要参数
+     * @return 配置完成的WebApiHttpHelper实例，可用于执行WebApi的HTTP请求操作
+     */
+    @Bean(destroyMethod = "close")
+    public WebApiHttpHelper k3CloudWebApiHttpHelper(WebApiProperties webApiProperties) {
+        return WebApiHttpHelper.of(webApiProperties);
+    }
+
+    /**
+     * 创建并配置金蝶云星空WebApi的辅助工具Bean。
+     * 该方法基于已配置的K3CloudApi客户端实例，构建WebApiHelper对象，用于简化对金蝶云星空WebApi的调用操作。
+     *
+     * @param k3CloudApi 已配置的金蝶云星空OpenApi客户端实例，提供与金蝶云星空服务交互的基础能力
+     * @return 配置完成的WebApiHelper实例，可用于执行金蝶云星空WebApi的各种业务操作
      */
     @Bean
     public WebApiHelper k3CloudWebApiHelper(K3CloudApi k3CloudApi) {
