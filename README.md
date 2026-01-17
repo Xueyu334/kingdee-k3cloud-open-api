@@ -23,7 +23,7 @@
 - **JDK 版本**: 17
 - **构建工具**: Maven 3.6+
 - **HTTP 客户端**: Apache HttpClient 5.3.1
-- **JSON 处理**: FastJson2 2.0.52
+- **JSON 处理**: FastJson2 2.0.52, Gson 2.8.9
 - **工具库**: Hutool 5.8.29、Guava 33.2.1-jre
 - **缓存**: Caffeine 3.1.8
 - **集合框架**: Eclipse Collections 12.0.0.M3
