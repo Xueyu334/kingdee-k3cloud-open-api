@@ -97,10 +97,10 @@ public class WebApiHttpHelper implements AutoCloseable {
      * 通过该构造函数，将 WebApiProperties 和 WebApiResponseConverter 注入到当前类中，
      * 确保类的依赖项在实例化时被正确初始化。
      *
-     * @param webApiProperties   包含与金蝶 K3Cloud Web API 交互所需的配置信息，例如服务地址、账套ID、用户凭据等。
-     *                           该参数不能为空，且其内容通常通过配置文件或外部化方式进行管理。
+     * @param webApiProperties        包含与金蝶 K3Cloud Web API 交互所需的配置信息，例如服务地址、账套ID、用户凭据等。
+     *                                该参数不能为空，且其内容通常通过配置文件或外部化方式进行管理。
      * @param webApiResponseConverter 用于解析 API 响应字符串的转换器实例。
-     *                           该参数提供了将 API 响应解析为特定业务对象的能力，支持多种业务场景的响应处理。
+     *                                该参数提供了将 API 响应解析为特定业务对象的能力，支持多种业务场景的响应处理。
      */
     private WebApiHttpHelper(WebApiProperties webApiProperties, WebApiResponseConverter webApiResponseConverter) {
         this.webApiProperties = webApiProperties;
@@ -319,8 +319,9 @@ public class WebApiHttpHelper implements AutoCloseable {
             // 更新登录结果
             this.loginResult = result;
             return result;
-        } catch (IOException e) {
-            this.loginResult = null; // 在登录失败时将 loginResult 置为 null
+        } catch (Exception e) {
+            // 在登录失败时将 loginResult 置为 null
+            this.loginResult = null;
             throw new WebApiInvokeException("LoginBySign failed", e);
         }
     }
@@ -366,6 +367,12 @@ public class WebApiHttpHelper implements AutoCloseable {
      * @return API服务器返回的原始响应字符串。
      */
     public String execute(String serviceName, Object[] parameters) {
+        if (serviceName == null || serviceName.isBlank()) {
+            throw new IllegalArgumentException("serviceName 不能为空");
+        }
+        if (parameters == null) {
+            throw new IllegalArgumentException("parameters 不能为空");
+        }
         ensureLogin();
         return executeRaw(serviceName, parameters);
     }
@@ -381,6 +388,12 @@ public class WebApiHttpHelper implements AutoCloseable {
      * @throws WebApiInvokeException 当调用K3Cloud Web API过程中发生IO异常时抛出。
      */
     private String executeRaw(String serviceName, Object[] parameters) {
+        if (serviceName == null || serviceName.isBlank()) {
+            throw new IllegalArgumentException("serviceName 不能为空");
+        }
+        if (parameters == null) {
+            throw new IllegalArgumentException("parameters 不能为空");
+        }
         String url = getServiceUrl(serviceName);
         if (webApiProperties.isPrintExecuteUrl()) {
             log.info("Kingdee K3Cloud Web API Execute URL: {}", url);
