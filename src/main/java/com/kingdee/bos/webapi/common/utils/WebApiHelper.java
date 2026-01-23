@@ -665,6 +665,9 @@ public class WebApiHelper {
      */
     public WebApiResp<AttachmentUploadResult> attachmentSplitUpload(AttachmentUpLoadRequest request,
                                                                     InputStream inputStream, int blockSize) throws IOException {
+        if (Objects.isNull(request)) {
+            throw new IllegalArgumentException("request can not be null!");
+        }
         if (blockSize <= 0) {
             throw new IllegalArgumentException("blockSize must be a value greater than 0");
         }
@@ -673,41 +676,43 @@ public class WebApiHelper {
         }
         byte[] content = new byte[blockSize];
         WebApiResp<AttachmentUploadResult> webApiResp = null;
-        try (BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream, blockSize)) {
-            // 处理流为空的情况
-            bufferedInputStream.mark(1);
-            if (bufferedInputStream.read() == -1) {
-                throw new IOException("inputStream can not be empty!");
-            }
-            bufferedInputStream.reset();
+        try (PushbackInputStream pushbackInputStream =
+                     new PushbackInputStream(new BufferedInputStream(inputStream, blockSize), 1)) {
             // 提前实例化Base64编码器
             Base64.Encoder encoder = Base64.getEncoder();
             //循环分块读取和上传
-            while (true) {
-                int size = bufferedInputStream.read(content);
-                if (size == -1) {
-                    // 读取完毕，退出循环
-                    break;
+            int size = pushbackInputStream.read(content);
+            if (size == -1) {
+                throw new IOException("inputStream can not be empty!");
+            }
+            while (size != -1) {
+                int next = pushbackInputStream.read();
+                boolean isLast = (next == -1);
+                if (!isLast) {
+                    pushbackInputStream.unread(next);
                 }
-                //是否最后一串
-                boolean isLast = (size != blockSize);
                 byte[] uploadBytes = Arrays.copyOf(content, size);
                 String fileBase64String = encoder.encodeToString(uploadBytes);
                 // 设置上传请求数据
                 if (Objects.nonNull(webApiResp)) {
-                    request.setFileId(webApiResp.getResult().getFileId());
+                    AttachmentUploadResult result = webApiResp.getResult();
+                    if (result == null || StringUtils.isEmpty(result.getFileId())) {
+                        throw new WebApiResponseValidationException("上传文件出现异常: fileId为空!", webApiResp);
+                    }
+                    request.setFileId(result.getFileId());
                 }
                 request.setIsLast(isLast);
                 request.setSendByte(fileBase64String);
                 // 调用接口上传
                 webApiResp = attachmentUploadResult(request);
-                if (!webApiResp.isSuccessfully()) {
+                if (webApiResp == null || !webApiResp.isSuccessfully()) {
                     throw new WebApiResponseValidationException("上传文件出现异常!", webApiResp);
                 }
                 if (isLast) {
                     // 如果是最后一块，则退出循环
                     break;
                 }
+                size = pushbackInputStream.read(content);
             }
             return webApiResp;
         }
