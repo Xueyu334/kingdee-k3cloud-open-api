@@ -749,11 +749,17 @@ public class WebApiHelper {
     }
 
     /**
-     * 文件分块下载 针对大文件下载
+     * 分块下载附件到指定目录。
+     * 该方法通过多次请求下载附件的各个分块，并将分块数据以Base64解码后写入本地文件。
+     * 下载过程中会自动创建目标目录，并确保文件路径的安全性。
+     * 如果下载过程中出现任何错误，将抛出相应的异常。
      *
-     * @param fileId  附件id
-     * @param dirPath 文件夹路径 存放文件的文件夹路径
-     * @return 文件
+     * @param fileId  附件的唯一标识符，不能为空
+     * @param dirPath 目标目录的路径，用于存储下载的文件，不能为空
+     * @return 下载完成后生成的本地文件对象
+     * @throws IOException                       如果目录创建失败、文件写入失败或发生其他I/O错误
+     * @throws IllegalArgumentException          如果fileId或dirPath为空
+     * @throws WebApiResponseValidationException 如果API响应失败、数据无效或下载过程中出现逻辑错误
      */
     public File attachmentSplitDownload(String fileId, String dirPath) throws IOException {
         if (StringUtils.isEmpty(dirPath)) {
@@ -763,7 +769,7 @@ public class WebApiHelper {
             throw new IllegalArgumentException("附件id必填!");
         }
         // 提前判断路径是否存在并创建目录
-        Path directories = Paths.get(dirPath);
+        Path directories = Paths.get(dirPath).toAbsolutePath().normalize();
         if (!Files.exists(directories)) {
             Files.createDirectories(directories);
             log.info("Directory created: {}", dirPath);
@@ -772,29 +778,56 @@ public class WebApiHelper {
         boolean isLast = false;
         Path filePath = null;
         Base64.Decoder decoder = Base64.getDecoder();
+        Long previousStartIndex = null;
         while (!isLast) {
             WebApiResp<AttachmentDownLoadResult> webApiRespResult = attachmentDownLoadResult(request);
             if (!webApiRespResult.isSuccessfully()) {
                 throw new WebApiResponseValidationException("附件下载失败!", webApiRespResult);
             }
             AttachmentDownLoadResult result = webApiRespResult.getResult();
+            if (result == null) {
+                throw new WebApiResponseValidationException("附件下载失败: 响应结果为空!", webApiRespResult);
+            }
             //是否最后一块
             isLast = result.getIsLast();
             if (!isLast) {
                 //设置下次下载的位置
                 Long startIndex = result.getStartIndex();
+                if (startIndex == null) {
+                    throw new WebApiResponseValidationException("附件下载失败: startIndex为空!", webApiRespResult);
+                }
+                if (previousStartIndex != null && previousStartIndex.equals(startIndex)) {
+                    throw new WebApiResponseValidationException("附件下载失败: startIndex未推进!", webApiRespResult);
+                }
                 request.setStartIndex(startIndex);
+                previousStartIndex = startIndex;
             }
             //设置文件
             String fileName = result.getFileName();
-            filePath = directories.resolve(fileName);
+            if (StringUtils.isEmpty(fileName)) {
+                throw new WebApiResponseValidationException("附件下载失败: 文件名为空!", webApiRespResult);
+            }
+            Path fileNamePath = Paths.get(fileName).getFileName();
+            if (fileNamePath == null) {
+                throw new WebApiResponseValidationException("附件下载失败: 文件名非法!", webApiRespResult);
+            }
+            filePath = directories.resolve(fileNamePath).normalize();
+            if (!filePath.startsWith(directories)) {
+                throw new WebApiResponseValidationException("附件下载失败: 文件路径非法!", webApiRespResult);
+            }
             // 确保文件存在
             if (!Files.exists(filePath)) {
                 Files.createFile(filePath);
             }
             //获取base64的文件编码字符串
             String filePart = result.getFilePart();
-            try (OutputStream out = Files.newOutputStream(filePath, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+            if (StringUtils.isEmpty(filePart)) {
+                throw new WebApiResponseValidationException("附件下载失败: 文件内容为空!", webApiRespResult);
+            }
+            StandardOpenOption[] openOptions = request.getStartIndex() == 0L
+                    ? new StandardOpenOption[]{StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE}
+                    : new StandardOpenOption[]{StandardOpenOption.CREATE, StandardOpenOption.APPEND};
+            try (OutputStream out = Files.newOutputStream(filePath, openOptions);
                  BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(out)) {
                 byte[] bytes = decoder.decode(filePart);
                 bufferedOutputStream.write(bytes);
