@@ -4,6 +4,7 @@ import jakarta.annotation.Nonnull;
 
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.LockSupport;
@@ -18,73 +19,87 @@ public class TimeoutLockFreeSpinStackLock implements Lock {
      * 无界并发队列 栈
      */
     private final ConcurrentLinkedDeque<Thread> stack = new ConcurrentLinkedDeque<>();
+    private final AtomicReference<Thread> owner = new AtomicReference<>();
 
     @Override
     public void lock() {
         Thread currentThread = Thread.currentThread();
-        // 当前线程入栈
+        if (owner.compareAndSet(null, currentThread)) {
+            return;
+        }
         stack.addFirst(currentThread);
-        // 自旋等待，直到当前线程成为栈顶元素
-        while (stack.peekFirst() != currentThread) {
-            // 自旋，忙等待
-            // 让出 CPU，减少忙等待的 CPU 资源浪费
-            Thread.yield();
+        while (true) {
+            if (stack.peekFirst() == currentThread && owner.compareAndSet(null, currentThread)) {
+                stack.pollFirst();
+                return;
+            }
+            LockSupport.parkNanos(1_000_000);
         }
     }
 
     @Override
     public void lockInterruptibly() throws InterruptedException {
         Thread currentThread = Thread.currentThread();
-        // 当前线程入栈
+        if (Thread.interrupted()) {
+            throw new InterruptedException();
+        }
+        if (owner.compareAndSet(null, currentThread)) {
+            return;
+        }
         stack.addFirst(currentThread);
-        // 自旋等待，直到当前线程成为栈顶元素或被中断
-        while (stack.peekFirst() != currentThread) {
-            if (Thread.currentThread().isInterrupted()) {
-                // 中断时移除线程
+        while (true) {
+            if (Thread.interrupted()) {
                 stack.removeFirstOccurrence(currentThread);
                 throw new InterruptedException();
             }
-            // 自旋，忙等待
-            Thread.yield(); // 让出 CPU
+            if (stack.peekFirst() == currentThread && owner.compareAndSet(null, currentThread)) {
+                stack.pollFirst();
+                return;
+            }
+            LockSupport.parkNanos(1_000_000);
         }
     }
 
     @Override
     public boolean tryLock() {
         Thread currentThread = Thread.currentThread();
-        // 使用 compareAndSet 来尝试获取锁
-        if (stack.peekFirst() == null) {
-            stack.addFirst(currentThread);
-            return true;
-        }
-        // 如果栈顶是当前线程，则表示当前线程已经持有锁
-        return stack.peekFirst() == currentThread;
+        return owner.compareAndSet(null, currentThread);
     }
 
     @Override
     public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
-        long timeoutMillis = unit.toMillis(time);
-        long startTime = System.currentTimeMillis();
+        long timeoutNanos = unit.toNanos(time);
+        long deadline = System.nanoTime() + timeoutNanos;
         Thread currentThread = Thread.currentThread();
-        stack.addFirst(currentThread);  // 当前线程入栈
-        while (stack.peekFirst() != currentThread) {
-            // 检查超时
-            if (System.currentTimeMillis() - startTime > timeoutMillis) {
-                stack.removeFirstOccurrence(currentThread); // 超时移除线程
+        if (Thread.interrupted()) {
+            throw new InterruptedException();
+        }
+        if (owner.compareAndSet(null, currentThread)) {
+            return true;
+        }
+        stack.addFirst(currentThread);
+        while (true) {
+            if (Thread.interrupted()) {
+                stack.removeFirstOccurrence(currentThread);
+                throw new InterruptedException();
+            }
+            if (stack.peekFirst() == currentThread && owner.compareAndSet(null, currentThread)) {
+                stack.pollFirst();
+                return true;
+            }
+            long remaining = deadline - System.nanoTime();
+            if (remaining <= 0) {
+                stack.removeFirstOccurrence(currentThread);
                 return false;
             }
-            // 自旋等待，减少忙等待的 CPU 资源浪费
-            LockSupport.parkNanos(10_000_000); // 10ms
+            LockSupport.parkNanos(Math.min(remaining, 10_000_000L));
         }
-        return true;
     }
 
     @Override
     public void unlock() {
         Thread currentThread = Thread.currentThread();
-        if (stack.peekFirst() == currentThread) {
-            stack.pollFirst(); // 弹出栈顶元素（当前线程）
-        } else {
+        if (!owner.compareAndSet(currentThread, null)) {
             throw new IllegalMonitorStateException("The current thread does not hold the lock");
         }
     }
