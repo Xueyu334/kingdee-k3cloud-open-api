@@ -591,7 +591,13 @@ public class WebApiHelper {
     public String execute(String serviceName, String params) {
         try {
             RepoResult<?> repoResult = k3CloudApi.CheckAuthInfo();
+            if (repoResult == null) {
+                throw new WebApiInvokeException("CheckAuthInfo返回为空!");
+            }
             RepoStatus responseStatus = repoResult.getResponseStatus();
+            if (responseStatus == null) {
+                throw new WebApiInvokeException("CheckAuthInfo响应状态为空!");
+            }
             if (responseStatus.isIsSuccess()) {
                 Object[] paramInfo = JSON.parseObject(JSON.toJSONBytes(new Object[]{params}), Object[].class);
                 return k3CloudApi.execute(serviceName, paramInfo);
@@ -616,6 +622,9 @@ public class WebApiHelper {
      * @return 操作结果
      */
     public <V> V executeByK3CloudApi(Function<K3CloudApi, V> function) {
+        if (Objects.isNull(function)) {
+            throw new IllegalArgumentException("function can not be null!");
+        }
         return function.apply(k3CloudApi);
     }
 
@@ -782,6 +791,7 @@ public class WebApiHelper {
         AttachmentDownLoadRequest request = new AttachmentDownLoadRequest(fileId, 0L);
         boolean isLast = false;
         Path filePath = null;
+        String expectedFileName = null;
         Base64.Decoder decoder = Base64.getDecoder();
         Long previousStartIndex = null;
         while (!isLast) {
@@ -811,6 +821,11 @@ public class WebApiHelper {
             String fileName = result.getFileName();
             if (StringUtils.isEmpty(fileName)) {
                 throw new WebApiResponseValidationException("附件下载失败: 文件名为空!", webApiRespResult);
+            }
+            if (expectedFileName == null) {
+                expectedFileName = fileName;
+            } else if (!expectedFileName.equals(fileName)) {
+                throw new WebApiResponseValidationException("附件下载失败: 文件名不一致!", webApiRespResult);
             }
             Path fileNamePath = Paths.get(fileName).getFileName();
             if (fileNamePath == null) {
