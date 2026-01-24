@@ -1,4 +1,4 @@
-package com.rain.lock;
+package com.rain.common.utils.lock;
 
 import jakarta.annotation.Nonnull;
 
@@ -10,7 +10,16 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.LockSupport;
 
 /**
- * 栈锁
+ * 实现一种支持超时和中断的无锁自旋栈锁。
+ * 该锁通过无界并发双端队列（栈）管理等待线程，结合原子引用确保锁状态的无锁更新。
+ * 锁的获取遵循后进先出（LIFO）的栈顺序，以减少线程饥饿的可能性。
+ * 自旋过程中使用短暂的休眠（1毫秒）来降低CPU占用，同时支持可中断的锁获取和带超时的尝试。
+ * <p>
+ * 注意：此锁不提供条件变量（Condition）支持，调用newCondition方法将抛出UnsupportedOperationException。
+ * 解锁操作必须由持有锁的线程执行，否则会抛出IllegalMonitorStateException。
+ * <p>
+ * 该锁适用于高并发场景，其中线程竞争锁的时间较短，且需要支持超时和中断控制。
+ * 由于使用自旋和休眠策略，可能不适用于锁持有时间较长的场景。
  *
  * @author xueyu
  */
