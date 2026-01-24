@@ -243,6 +243,24 @@ public class K3CloudHttpTest {
 }
 ```
 
+### Caffeine 缓存测试
+
+测试用例位置：`src/test/java/com/rain/caffeine/CaffeineTest.java`
+
+```java
+@Test
+void test() throws InterruptedException {
+    Cache<Object, Object> cache = Caffeine.newBuilder()
+            .maximumSize(100)
+            .expireAfterWrite(3, TimeUnit.SECONDS)
+            .build();
+    cache.put("as1", "as");
+    Thread.sleep(1000);
+    Object as1 = cache.get("as1", k -> null);
+    log.info(as1.toString());
+}
+```
+
 ## 📝 更新日志
 
 ### v1.0.0
