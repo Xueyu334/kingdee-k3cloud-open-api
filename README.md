@@ -297,6 +297,27 @@ RangeMap<Integer, String> view = rangeMap.subRangeMap(Range.closed(5, 15));
 view.get(6);
 ```
 
+### TimeoutLockFreeSpinStackLock 测试
+
+锁实现位置：`src/main/java/com/rain/common/utils/lock/TimeoutLockFreeSpinStackLock.java`
+
+测试用例位置：`src/test/java/com/rain/lock/TimeoutLockFreeSpinStackLockTest.java`
+
+该锁是一个支持超时与中断的无锁自旋栈锁，采用 LIFO 顺序管理等待线程，适用于锁持有时间较短的高并发场景。测试覆盖非持有线程的 `tryLock` 失败、超时获取失败、可中断获取与非法解锁异常。
+
+示例代码：
+
+```java
+TimeoutLockFreeSpinStackLock lock = new TimeoutLockFreeSpinStackLock();
+lock.lock();
+try {
+    boolean acquired = lock.tryLock(50, TimeUnit.MILLISECONDS);
+    System.out.println(acquired);
+} finally {
+    lock.unlock();
+}
+```
+
 ### Caffeine 缓存测试
 
 测试用例位置：`src/test/java/com/rain/caffeine/CaffeineTest.java`
