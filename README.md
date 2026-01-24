@@ -243,6 +243,60 @@ public class K3CloudHttpTest {
 }
 ```
 
+### Eclipse Collections 测试
+
+测试用例位置：`src/test/java/com/rain/eclipse/coll/EclipseCollectionsTest.java`
+
+该用例覆盖 Eclipse Collections 的常用集合操作，包括 List 的筛选与转换、Set 的并交差、Map 的缺省插入与过滤、Bag 的计数统计，以及 Multimap 的多值读写。
+
+示例代码：
+
+```java
+// List: filter/select 常用操作
+MutableList<String> list = Lists.mutable.of("Apple", "Banana", "Orange");
+MutableList<String> filtered = list.select(fruit -> fruit.length() > 5);
+
+// Set: union/intersect/difference 操作
+MutableSet<Integer> left = Sets.mutable.of(1, 2, 3, 3);
+MutableSet<Integer> right = Sets.mutable.of(3, 4);
+left.union(right);
+left.intersect(right);
+left.difference(right);
+
+// Map: getIfAbsentPut 与 select 过滤
+MutableMap<String, Integer> map = Maps.mutable.of("a", 1, "b", 2);
+map.getIfAbsentPut("c", () -> 3);
+map.select((k, v) -> v >= 2);
+
+// Bag: 计数统计
+MutableBag<String> bag = Bags.mutable.of("a", "a", "b");
+bag.occurrencesOf("a");
+
+// Multimap: 多值映射的 put/get
+MutableListMultimap<String, String> multimap = Multimaps.mutable.list.empty();
+multimap.put("k1", "v1");
+multimap.get("k1");
+```
+
+### RangeMap 测试
+
+测试用例位置：`src/test/java/com/rain/guava/RangeMapTest.java`
+
+该用例基于 Guava 的 `TreeRangeMap`，覆盖范围重叠的覆盖规则、删除范围产生间隙、子范围视图以及相同范围的替换行为。
+
+示例代码：
+
+```java
+RangeMap<Integer, String> rangeMap = TreeRangeMap.create();
+rangeMap.put(Range.closed(1, 10), "A");
+rangeMap.put(Range.closed(5, 15), "B");
+
+rangeMap.remove(Range.closed(3, 7));
+
+RangeMap<Integer, String> view = rangeMap.subRangeMap(Range.closed(5, 15));
+view.get(6);
+```
+
 ### Caffeine 缓存测试
 
 测试用例位置：`src/test/java/com/rain/caffeine/CaffeineTest.java`
