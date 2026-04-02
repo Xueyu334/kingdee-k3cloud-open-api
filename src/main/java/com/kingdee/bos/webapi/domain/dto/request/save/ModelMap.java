@@ -130,6 +130,18 @@ public class ModelMap<K, V> extends LinkedHashMap<K, V> implements Model {
     }
 
     /**
+     * 创建一个默认的 DefaultModelMap 实例。
+     * <p>
+     * 此方法返回一个新的 DefaultModelMap，用于动态构建金蝶云星空 API 请求中的模型数据。
+     * DefaultModelMap 是一种扩展了 ModelMap 的具体实现，提供了更加便捷的操作方式，适用于需要动态构建数据模型的场景。
+     *
+     * @return 一个新的 DefaultModelMap 实例
+     */
+    public static DefaultModelMap defaultModelMap() {
+        return new DefaultModelMap();
+    }
+
+    /**
      * 链式添加键值对
      *
      * <p>示例:</p>
@@ -161,4 +173,5 @@ public class ModelMap<K, V> extends LinkedHashMap<K, V> implements Model {
         }
         return this;
     }
+
 }
