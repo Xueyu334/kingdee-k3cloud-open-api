@@ -752,10 +752,10 @@ public class WebApiHelper {
     }
 
     /**
-     * 附件下载
+     * 处理附件下载请求并返回结果。
      *
-     * @param request 请求参数
-     * @return 响应数据 {@link WebApiResp<AttachmentDownLoadRequest>}
+     * @param request 附件下载请求对象，包含必要的下载参数。
+     * @return 包含附件下载结果的响应对象。
      */
     public WebApiResp<AttachmentDownLoadResult> attachmentDownLoadResult(AttachmentDownLoadRequest request) {
         String resp = attachmentDownLoad(request);
