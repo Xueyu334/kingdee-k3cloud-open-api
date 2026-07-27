@@ -416,16 +416,27 @@ public class WebApiHttpHelper implements AutoCloseable {
     }
 
     /**
-     * 关闭内部的 CloseableHttpClient 实例。
-     * 在 WebApiHttpHelper 实例不再使用时，应调用此方法释放资源。
+     * 关闭当前辅助类持有的 HTTP 资源。
+     * <p>
+     * 关闭 {@link CloseableHttpClient} 时会同时释放其管理的连接池和池内连接；
+     * 此外，本方法还会清空 Cookie、登录结果及会话检查状态。
+     * </p>
+     * 在 {@code WebApiHttpHelper} 实例不再使用时，应调用此方法释放资源。
      * 实现 {@code AutoCloseable} 接口，允许在 try-with-resources 语句中使用。
      *
-     * @throws IOException 如果关闭 HttpClient 过程中发生 IO 异常。
+     * @throws IOException 关闭 HTTP 客户端时发生 I/O 异常
      */
     @Override
     public void close() throws IOException {
-        if (httpClient != null) {
-            httpClient.close();
+        try {
+            if (httpClient != null) {
+                httpClient.close();
+            }
+        } finally {
+            httpClient = null;
+            cookieStore.clear();
+            loginResult = null;
+            lastSessionCheckTime = 0L;
         }
     }
 
