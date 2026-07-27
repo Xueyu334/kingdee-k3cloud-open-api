@@ -1,7 +1,7 @@
 package com.kingdee.bos.webapi.common.utils;
 
 import com.kingdee.bos.webapi.entity.AppCfg;
-import com.kingdee.bos.webapi.sdk.HttpRequester;
+import com.kingdee.bos.webapi.sdk.WebApiClient;
 import com.kingdee.bos.webapi.utils.CfgUtil;
 import com.kingdee.bos.webapi.utils.HttpUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -10,21 +10,42 @@ import java.lang.reflect.Field;
 
 
 /**
- * 金蝶web api的封装有些困扰
- * 在最终http请求阶段获取proxy 还是会调用{@link CfgUtil#getAppDefaultCfg()}方法
- * 所以增加该扩展 避免读取配置文件
+ * 金蝶云星空 WebAPI SDK 默认配置的内存初始化扩展。
+ * <p>
+ * SDK 获取代理配置时，{@link HttpUtils#getProxy()} 会通过
+ * {@link CfgUtil#getAppDefaultCfg()} 读取全局默认配置；
+ * {@link WebApiClient} 在认证信息不完整时也会读取该配置。
+ * 当 SDK 内部尚未初始化默认配置时，{@code CfgUtil} 会尝试从
+ * {@code kdwebapi.properties} 加载配置。
+ * </p>
+ * <p>
+ * 本扩展用于根据应用配置构建 {@link AppCfg}，并将其设置为
+ * {@code CfgUtil} 的全局默认配置，使 SDK 复用内存中的配置，
+ * 避免再次读取 {@code kdwebapi.properties}。
+ * </p>
  *
  * @author xueyu
- * @see HttpRequester#post()
  * @see HttpUtils#getProxy()
  * @see CfgUtil#getAppDefaultCfg()
+ * @see WebApiClient
  */
 public class CfgUtilExt {
 
     /**
-     * 将 {@link AppCfg} 实例设置为 {@link CfgUtil}。
+     * 将指定配置设置为金蝶 WebAPI SDK 的全局默认配置。
+     * <p>
+     * 该方法通过反射写入 {@link CfgUtil} 内部的静态 {@code instance} 字段。
+     * 设置后，{@link CfgUtil#getAppDefaultCfg()} 将优先返回该实例，
+     * 不再尝试加载 {@code kdwebapi.properties}。
+     * </p>
+     * <p>
+     * 此操作会影响当前 JVM 内所有使用 {@code CfgUtil} 默认配置的 SDK 调用，
+     * 且依赖 SDK 8.2.0 的内部字段结构；升级金蝶 SDK 时需重新确认兼容性。
+     * </p>
      *
-     * @param appCfg 要设置的 {@link AppCfg} 实例
+     * @param appCfg 要设置的全局默认配置
+     * @throws RuntimeException 无法找到或写入 SDK 内部 {@code instance} 字段时抛出
+     * @see CfgUtil#getAppDefaultCfg()
      */
     public static void setAppCfgToCfgUtil(AppCfg appCfg) {
         try {
