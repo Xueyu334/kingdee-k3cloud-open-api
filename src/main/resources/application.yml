@@ -1,45 +1,3 @@
-server:
-  #服务器HTTP端口
-  port: 8091
-  #服务器应绑定到的网络地址
-  address: 0.0.0.0
-  servlet:
-    #应用程序的上下文路径。
-    context-path: /k3cloud
-    encoding:
-      #HTTP请求和响应的字符集。如果未明确设置，则添加到 “Content-Type” 标头。
-      charset: utf-8
-    #是否向程序注入默认的servlet
-    register-default-servlet: false
-    #应用程序的显示名称
-    application-display-name: k3cloud-open-api
-  tomcat:
-    accesslog:
-      #是否启用访问日志
-      enabled: false
-    threads:
-      #工作线程的最小数量
-      min-spare: 10
-      #工作线程的最大数量
-      max: 200
-    #post请求中表单内容的最大大小
-    max-http-form-post-size: 2MB
-    #要吞下的请求正文的最大数量
-    max-swallow-size: 2MB
-    #用于解码URI的字符编码
-    uri-encoding: UTF-8
-    #Tomcat连接器最多能够处理（默认8192）个并发连接
-    max-connections: 8192
-    # 当所有可能的请求处理线程都在使用中时，传入连接请求的最大队列长度。
-    accept-count: 100
-    #指定 Tomcat 将保留在缓存中以便在处理后续 HTTP 请求时重用的最大空闲处理器（线程）数量。如果空闲处理器的数量超过此限制，它们可能会被系统最终回收。
-    #当设置为 -1 时，缓存是无限的，理论上的最大大小等于最大连接数。
-    processor-cache: 200
-    #连接器在接受连接后等待呈现请求URI行的时间。
-    connection-timeout: 20000
-    resource:
-      #是否允许此web应用程序使用静态资源缓存
-      allow-caching: true
 spring:
   profiles:
     active: @profiles.active@
@@ -54,33 +12,7 @@ spring:
   devtools:
     restart:
       enabled: false
-  mvc:
-    pathmatch:
-      #映射匹配请求路径的策略选择 默认PathPatternParser实现
-      matching-strategy: path_pattern_parser
-    format:
-      date: yyyy-MM-dd
-      time: HH:mm:ss
-      date-time: yyyy-MM-dd HH:mm:ss
-      #只有静态资源的访问路径为/static/**时，才会处理请求 默认为/**  会导致NoHandlerFoundException不抛出
-      #因为默认情况下所有的请求最终都会进入静态资源控制器 除非手动编写ErrorController
-    static-path-pattern: /static/**
-    #是否允许在调试和跟踪级别记录 (可能敏感的) 请求详细信息
-    log-request-details: false
-    #是否在每个请求结束时发布ServletRequestHandledEvent
-    publish-request-handled-events: true
-  servlet:
-    multipart:
-      #是否启用分段上传支持
-      enabled: true
-      # 最大文件大小
-      max-file-size: 5GB
-      # 最大请求大小
-      max-request-size: 5GB
-      # 如果上传的文件大小小于 1MB，文件内容将保存在内存中；如果大于等于 1MB，文件内容将保存到磁盘上的临时文件中
-      file-size-threshold: 1MB
-      # 首次访问文件或参数时才解析多部分请求
-      resolve-lazily: true
+
 logging:
   file:
     path: ../logs/k3colud
@@ -93,5 +25,5 @@ logging:
     org.slf4j: warn
     org.apache: warn
     com.microsoft.sqlserver.jdbc: error
-    org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: info
+
 

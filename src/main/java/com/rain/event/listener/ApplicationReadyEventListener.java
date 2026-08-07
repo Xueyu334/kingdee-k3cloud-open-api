@@ -1,11 +1,13 @@
 package com.rain.event.listener;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -18,6 +20,7 @@ import java.time.Duration;
  */
 @Slf4j
 @Component
+@ConditionalOnWebApplication
 public class ApplicationReadyEventListener implements ApplicationListener<ApplicationReadyEvent> {
 
     @Override
@@ -30,12 +33,18 @@ public class ApplicationReadyEventListener implements ApplicationListener<Applic
         ConfigurableEnvironment environment = applicationContext.getEnvironment();
         String port = environment.getProperty("server.port");
         String contextPath = environment.getProperty("server.servlet.context-path");
-        log.info("- Local: http://localhost:{}{}", port, contextPath);
-        try {
-            String ip = InetAddress.getLocalHost().getHostAddress();
-            log.info("- Network: http://{}:{}{}", ip, port, contextPath);
-        } catch (UnknownHostException e) {
-            log.error("get local host fail:", e);
+        if (contextPath == null) {
+            contextPath = "";
+        }
+        if (StringUtils.hasText(port)) {
+            log.info("- Local: http://localhost:{}{}", port, contextPath);
+            try {
+                String ip = InetAddress.getLocalHost().getHostAddress();
+                log.info("- Network: http://{}:{}{}", ip, port, contextPath);
+            } catch (UnknownHostException e) {
+                log.error("get local host fail:", e);
+            }
         }
     }
 }
+
