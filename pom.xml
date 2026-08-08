@@ -200,6 +200,25 @@
                     <useDefaultDelimiters>false</useDefaultDelimiters>
                 </configuration>
             </plugin>
+            <!-- 打包时额外生成源码 JAR：xxx-sources.jar -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <!-- 执行任务标识 -->
+                        <id>attach-sources</id>
+                        <!-- 在 package 阶段生成源码包 -->
+                        <phase>package</phase>
+                        <goals>
+                            <!-- 生成 xxx-sources.jar -->
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
     <profiles>
