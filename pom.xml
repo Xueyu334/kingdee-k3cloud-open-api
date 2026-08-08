@@ -11,6 +11,7 @@
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
         <spring-boot.version>3.5.9</spring-boot.version>
         <fastjson2.version>2.0.52</fastjson2.version>
         <commons-lang3.version>3.20.0</commons-lang3.version>
