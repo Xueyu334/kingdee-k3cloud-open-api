@@ -160,6 +160,7 @@
                 <version>${spring-boot.version}</version>
                 <configuration>
                     <mainClass>com.rain.K3CloudOpenApiApplication</mainClass>
+                    <includeSystemScope>true</includeSystemScope>
                 </configuration>
                 <executions>
                     <execution>
