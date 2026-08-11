@@ -1,51 +1,28 @@
 package com.kingdee.bos.webapi.domain.dto.request.save;
 
 import com.alibaba.fastjson2.annotation.JSONType;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 /**
- * 保存/暂存数据时的 Model 标记接口
- *
- * <p>此接口是金蝶云星空 API 数据模型的顶级抽象,支持两种使用方式:</p>
- *
- * <h3>使用方式一: 动态配置(推荐用于简单场景)</h3>
- * <pre>{@code
- * SaveRequest saveRequest = new SaveRequest("BD_MATERIAL");
- * ModelMap<String, Object> modelMap = new ModelMap<>();
- * modelMap.put("FNumber", "test001");
- * modelMap.put("FName", "测试物料001");
- * saveRequest.setModel(modelMap);
- * }</pre>
- *
- * <h3>使用方式二: 强类型实体类(推荐用于复杂业务)</h3>
- * <pre>{@code
- * public class MaterialModel implements Model {
- *     @JsonProperty("FNumber")
- *     private String number;
- *
- *     @JsonProperty("FName")
- *     private String name;
- *     // ... getters/setters
- * }
- *
- * SaveRequest saveRequest = new SaveRequest("BD_MATERIAL");
- * MaterialModel material = new MaterialModel();
- * material.setNumber("test001");
- * material.setName("测试物料001");
- * saveRequest.setModel(material);
- * }</pre>
- *
- * <p><strong>注意事项:</strong></p>
- * <ul>
- *   <li>使用 {@code @JSONType(alphabetic = false)} 确保 JSON 序列化时字段顺序可控</li>
- *   <li>字段命名需与金蝶云星空 API 文档保持一致</li>
- *   <li>非必填字段建议不要出现在 JSON 中,以提高性能</li>
- * </ul>
- *
- * @see ModelMap 动态配置实现
- * @see SaveRequest#setModel(Model)
- * @author xueyu
+ * 表示一个模型接口，主要用于动态构建和序列化数据。
+ * <p>
+ * 此接口通常用于定义数据结构的基类，支持通过实现或扩展该接口
+ * 来表达金蝶云星空平台的 API 数据模型。
+ * <p>
+ * 特性：
+ * 1. **JSON序列化顺序控制**：通过注解 `@JSONType` 和 `@JsonPropertyOrder`
+ * 指定字段序列化顺序，确保数据在序列化和反序列化时
+ * 保持字段顺序一致。
+ * 2. **可扩展性**：允许根据业务需求扩展具体的数据模型，
+ * 提供灵活的接口定义。
+ * <p>
+ * 推荐使用场景：
+ * - 业务对象的基础抽象，例如物料、单位、客户等。
+ * - 动态定义的数据结构场景，如通过 `ModelMap` 配置数据。
  */
 @JSONType(alphabetic = false)
+@JsonPropertyOrder(alphabetic = false)
 public interface Model {
+
 
 }
