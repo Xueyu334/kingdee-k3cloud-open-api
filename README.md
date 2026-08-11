@@ -12,6 +12,7 @@
 |------|------|
 | **接口封装** | 完整封装保存、查询、提交、审核、作废等核心业务接口 |
 | **异常处理** | 统一的异常处理机制，清晰的错误信息反馈 |
+| **多 JSON 转换器** | 内置 FastJSON2、Gson 和 Jackson 响应转换器，Jackson 支持传入自定义 `ObjectMapper` |
 | **日志记录** | 自动记录请求响应日志，便于问题排查 |
 | **多环境支持** | 支持开发、测试、生产等多环境配置切换 |
 | **高性能缓存** | 集成 Caffeine 缓存框架，提升访问效率 |
@@ -19,12 +20,12 @@
 
 ## 🛠 技术栈
 
-- **核心框架**: Spring Boot 3.3.4
+- **核心框架**: Spring Boot 3.5.16
 - **JDK 版本**: 17
 - **构建工具**: Maven 3.6+
 - **HTTP 客户端**: Apache HttpClient 5.3.1
-- **JSON 处理**: FastJson2 2.0.52, Gson 2.8.9
-- **工具库**: Hutool 5.8.29、Guava 33.2.1-jre
+- **JSON 处理**: FastJson2 2.0.52、Gson 2.8.9、Jackson（由 Spring Boot BOM 管理版本）
+- **工具库**: Apache Commons Lang 3.20.0、Guava 33.2.1-jre
 - **缓存**: Caffeine 3.1.8
 - **集合框架**: Eclipse Collections 12.0.0.M3
 
@@ -34,7 +35,7 @@
 kingdee-k3cloud-open-api
 ├── src/main/java/com/kingdee/bos/webapi/    # 金蝶 WebAPI 封装模块
 │   ├── common/                               # 公共组件
-│   │   ├── convert/                          # 响应转换器
+│   │   ├── convert/                          # 响应转换器（FastJSON2、Gson、Jackson）
 │   │   ├── exception/                        # 异常定义
 │   │   └── utils/                            # 工具类
 │   ├── config/                               # 配置类
@@ -67,11 +68,21 @@ kingdee-k3cloud-open-api
 
 ```xml
 <dependency>
-    <groupId>com.kingdee.bos</groupId>
+    <groupId>com.rain</groupId>
     <artifactId>kingdee-k3cloud-open-api</artifactId>
     <version>1.0.0</version>
 </dependency>
 ```
+
+### 构建产物
+
+在仓库根目录执行：
+
+```bash
+mvn clean package -P local -DskipTests
+```
+
+构建会生成可执行 JAR 及对应的 `-sources.jar` 源码包；可将 `local` 替换为 `dev`、`test` 或 `prod` profile。项目部分测试依赖真实金蝶服务和本地凭据，默认构建示例使用 `-DskipTests`。
 
 ### 配置文件
 
@@ -91,8 +102,10 @@ kingdee:
       connect-timeout: 360                             # 连接超时（秒）
       request-timeout: 360                             # 请求超时（秒）
       stock-timeout: 180                               # 套接字超时（秒）
-      is-print-execute-url: true                       # 是否打印执行URL
+      print-execute-url: true                          # 是否打印执行 URL
 ```
+
+`WebApiConfig` 会显式创建并绑定 `WebApiProperties` Bean；使用上述前缀配置即可，无需在业务代码中额外注册属性类。
 
 ### 基础使用
 
@@ -161,6 +174,21 @@ WebApiResp<BatchSaveResult> response = webApiHelper.batchSaveResult(formId, json
 List<List<Object>> result = webApiHelper.executeBillQuery(jsonData);
 ```
 
+### JSON 响应转换
+
+`WebApiHelper` 默认使用 FastJSON2 转换响应。若需要使用 Jackson 的模块、日期格式或未知字段策略，可在创建 `WebApiHelper` 时传入自定义转换器：
+
+```java
+ObjectMapper objectMapper = new ObjectMapper()
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+WebApiHelper webApiHelper = WebApiHelper.of(
+        k3CloudApi,
+        new JacksonConvertApiResponse(objectMapper)
+);
+```
+
+`Model` 同时声明了 FastJSON2 与 Jackson 的字段顺序注解；自定义模型字段仍应使用与金蝶接口一致的 JSON 属性名。
+
 ## 📋 API 清单
 
 ### 核心操作接口
@@ -199,8 +227,8 @@ List<List<Object>> result = webApiHelper.executeBillQuery(jsonData);
 
 | 参数 | 默认值 | 说明 |
 |------|--------|------|
-| `connect-timeout` | 360秒 | 连接超时时间 |
-| `request-timeout` | 360秒 | 请求超时时间 |
+| `connect-timeout` | 120秒 | 连接超时时间 |
+| `request-timeout` | 120秒 | 请求超时时间 |
 | `stock-timeout` | 180秒 | 套接字读取超时时间 |
 
 ### 缓存配置
@@ -217,7 +245,9 @@ spring:
 
 ## 🧪 测试示例
 
-项目提供了完整的测试用例，位于 `src/test/java/com/rain/` 目录：
+项目测试用例位于 `src/test/java/` 目录：
+
+- `JacksonConvertApiResponseTest`：离线验证 Jackson 对泛型响应、二维列表、`ViewResult` 及自定义 `ObjectMapper` 的转换。
 
 ```java
 @SpringBootTest
@@ -337,6 +367,14 @@ void test() throws InterruptedException {
 ```
 
 ## 📝 更新日志
+
+### 未发布变更
+
+- ✨ 新增 Jackson 响应转换器及可注入的 `ObjectMapper` 配置。
+- ♻️ `WebApiProperties` 改为由 `WebApiConfig` 显式绑定，属性对象不再依赖 Spring 注解。
+- ♻️ `WebApiInvokeException` 独立继承 `RuntimeException`，保留错误码访问能力。
+- ⬆️ Spring Boot 升级至 3.5.16，编译目标统一为 Java 17。
+- 📦 Maven `package` 阶段额外生成源码 JAR。
 
 ### v1.0.0
 - ✨ 初始版本发布
