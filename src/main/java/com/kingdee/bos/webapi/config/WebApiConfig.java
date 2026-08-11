@@ -9,9 +9,11 @@ import com.kingdee.bos.webapi.sdk.K3CloudApi;
 import com.kingdee.bos.webapi.utils.PrintUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.bind.Bindable;
+import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 
 /**
@@ -25,8 +27,25 @@ import org.springframework.context.annotation.Configuration;
  */
 @Slf4j
 @Configuration
-@EnableConfigurationProperties(WebApiProperties.class)
 public class WebApiConfig {
+
+    private static final String WEB_API_PROPERTIES_PREFIX = "kingdee.k3cloud.web-api";
+
+    /**
+     * 手动创建并绑定金蝶云星空 Web API 配置，避免 {@link WebApiProperties} 依赖 Spring 注解。
+     *
+     * @param environment Spring 环境配置
+     * @return 已绑定的 Web API 配置
+     */
+    @Bean
+    public WebApiProperties webApiProperties(Environment environment) {
+        WebApiProperties webApiProperties = new WebApiProperties();
+        Binder binder = Binder.get(environment);
+        Bindable<WebApiProperties> target = Bindable.ofInstance(webApiProperties);
+        binder.bind(WEB_API_PROPERTIES_PREFIX, target);
+        return webApiProperties;
+    }
+
 
     /**
      * 配置云星空 OpenApi 客户端
